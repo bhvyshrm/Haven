@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../theme/haven_colors.dart';
 import '../theme/haven_typography.dart';
 
@@ -21,10 +22,18 @@ class HavenEmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryTextColor = isDark ? HavenColors.darkTextPrimary : HavenColors.lightTextPrimary;
-    final secondaryTextColor = isDark ? HavenColors.darkTextSecondary : HavenColors.lightTextSecondary;
-    final surfaceColor = isDark ? HavenColors.darkSurface : HavenColors.lightSurface;
-    final borderColor = isDark ? HavenColors.darkBorder : HavenColors.lightBorder;
+    final primaryTextColor = isDark
+        ? HavenColors.darkTextPrimary
+        : HavenColors.lightTextPrimary;
+    final secondaryTextColor = isDark
+        ? HavenColors.darkTextSecondary
+        : HavenColors.lightTextSecondary;
+    final surfaceColor = isDark
+        ? HavenColors.darkSurface
+        : HavenColors.lightSurface;
+    final borderColor = isDark
+        ? HavenColors.darkBorder
+        : HavenColors.lightBorder;
 
     return Center(
       child: Padding(
@@ -40,27 +49,21 @@ class HavenEmptyState extends StatelessWidget {
                 shape: BoxShape.circle,
                 border: Border.all(color: borderColor, width: 1.0),
               ),
-              child: Icon(
-                icon,
-                size: 26.0,
-                color: secondaryTextColor,
-              ),
+              child: Icon(icon, size: 26.0, color: secondaryTextColor),
             ),
             const SizedBox(height: 16.0),
             Text(
               title,
               textAlign: TextAlign.center,
-              style: HavenTypography.headlineSm(primaryTextColor).copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+              style: HavenTypography.headlineSm(primaryTextColor)
+                  .copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 6.0),
             Text(
               description,
               textAlign: TextAlign.center,
-              style: HavenTypography.bodySm(secondaryTextColor).copyWith(
-                height: 1.45,
-              ),
+              style: HavenTypography.bodySm(secondaryTextColor)
+                  .copyWith(height: 1.45),
             ),
             if (actionLabel != null && onAction != null) ...[
               const SizedBox(height: 20.0),
@@ -68,9 +71,14 @@ class HavenEmptyState extends StatelessWidget {
                 onPressed: onAction,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: primaryTextColor,
-                  foregroundColor: isDark ? HavenColors.darkCanvas : HavenColors.lightCanvas,
+                  foregroundColor: isDark
+                      ? HavenColors.darkCanvas
+                      : HavenColors.lightCanvas,
                   elevation: 0,
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20.0,
+                    vertical: 12.0,
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12.0),
                   ),

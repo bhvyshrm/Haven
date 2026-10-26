@@ -19,7 +19,9 @@ class AuthLockService {
     }
   }
 
-  Future<bool> authenticate({String reason = 'Unlock Haven to access your private notes'}) async {
+  Future<bool> authenticate({
+    String reason = 'Unlock Haven to access your private notes',
+  }) async {
     if (kIsWeb) return true;
     try {
       final canAuth = await isDeviceSupported();

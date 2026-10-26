@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../theme/haven_colors.dart';
 import '../theme/haven_typography.dart';
 
@@ -20,9 +21,15 @@ class HavenHeader extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryTextColor = isDark ? HavenColors.darkTextPrimary : HavenColors.lightTextPrimary;
-    final borderColor = isDark ? HavenColors.darkBorder : HavenColors.lightBorder;
-    final canvasColor = isDark ? HavenColors.darkCanvas : HavenColors.lightCanvas;
+    final primaryTextColor = isDark
+        ? HavenColors.darkTextPrimary
+        : HavenColors.lightTextPrimary;
+    final borderColor = isDark
+        ? HavenColors.darkBorder
+        : HavenColors.lightBorder;
+    final canvasColor = isDark
+        ? HavenColors.darkCanvas
+        : HavenColors.lightCanvas;
 
     return Container(
       color: canvasColor,
@@ -36,9 +43,7 @@ class HavenHeader extends StatelessWidget implements PreferredSizeWidget {
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               decoration: BoxDecoration(
                 border: showBottomDivider
-                    ? Border(
-                        bottom: BorderSide(color: borderColor, width: 1.0),
-                      )
+                    ? Border(bottom: BorderSide(color: borderColor, width: 1.0))
                     : null,
               ),
               child: Row(

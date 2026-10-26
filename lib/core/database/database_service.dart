@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'dart:io' as io;
+
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart' as sqflite;
@@ -21,8 +23,8 @@ class DatabaseService {
   SharedPreferences? _webPrefs;
   bool _initialized = false;
 
-  Future<void> init() async {
-    if (_initialized) return;
+  Future<void> init({String? customPath, bool inMemory = false}) async {
+    if (_initialized && customPath == null && !inMemory) return;
 
     if (kIsWeb) {
       _webPrefs = await SharedPreferences.getInstance();
@@ -33,25 +35,35 @@ class DatabaseService {
     try {
       // Use ffi databaseFactory on desktop (macOS/Linux/Windows) or in tests
       if (!kIsWeb &&
-          (defaultTargetPlatform == TargetPlatform.macOS ||
+          (io.Platform.environment.containsKey('FLUTTER_TEST') ||
+              defaultTargetPlatform == TargetPlatform.macOS ||
               defaultTargetPlatform == TargetPlatform.linux ||
               defaultTargetPlatform == TargetPlatform.windows)) {
         ffi.sqfliteFfiInit();
         sqflite.databaseFactory = ffi.databaseFactoryFfi;
       }
 
-      final databasesPath = await sqflite.getDatabasesPath();
-      final path = p.join(databasesPath, 'haven_local.db');
+      final String dbPath;
+      if (inMemory) {
+        dbPath = ffi.inMemoryDatabasePath;
+      } else if (customPath != null) {
+        dbPath = customPath;
+      } else {
+        final databasesPath = await sqflite.getDatabasesPath();
+        dbPath = p.join(databasesPath, 'haven_local.db');
+      }
 
       _sqliteDb = await sqflite.openDatabase(
-        path,
+        dbPath,
         version: 1,
         onCreate: _onCreate,
       );
       _initialized = true;
     } catch (e) {
       // Fallback to SharedPreferences if SQLite initialization encounters platform limits
-      debugPrint('SQLite init failed ($e), falling back to persistent preferences.');
+      debugPrint(
+        'SQLite init failed ($e), falling back to persistent preferences.',
+      );
       _webPrefs = await SharedPreferences.getInstance();
       _initialized = true;
     }
@@ -322,7 +334,11 @@ class DatabaseService {
   Future<void> deleteJournalEntry(String id) async {
     await init();
     if (_sqliteDb != null) {
-      await _sqliteDb!.delete('journal_entries', where: 'id = ?', whereArgs: [id]);
+      await _sqliteDb!.delete(
+        'journal_entries',
+        where: 'id = ?',
+        whereArgs: [id],
+      );
     } else {
       final list = _getWebList('journal_entries');
       list.removeWhere((m) => m['id'] == id);
@@ -334,7 +350,11 @@ class DatabaseService {
   // PLANNER & GOALS
   // =========================================================================
 
-  Future<WeeklyPlan> getOrCreateWeeklyPlan(String weekId, int year, int weekNumber) async {
+  Future<WeeklyPlan> getOrCreateWeeklyPlan(
+    String weekId,
+    int year,
+    int weekNumber,
+  ) async {
     await init();
     if (_sqliteDb != null) {
       final maps = await _sqliteDb!.query(
@@ -384,7 +404,10 @@ class DatabaseService {
       return maps.map(PlannerTask.fromMap).toList();
     } else {
       final list = _getWebList('planner_tasks');
-      final filtered = list.where((m) => m['week_id'] == weekId).map((m) => PlannerTask.fromMap(m)).toList();
+      final filtered = list
+          .where((m) => m['week_id'] == weekId)
+          .map((m) => PlannerTask.fromMap(m))
+          .toList();
       filtered.sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
       return filtered;
     }
@@ -413,7 +436,11 @@ class DatabaseService {
   Future<void> deletePlannerTask(String id) async {
     await init();
     if (_sqliteDb != null) {
-      await _sqliteDb!.delete('planner_tasks', where: 'id = ?', whereArgs: [id]);
+      await _sqliteDb!.delete(
+        'planner_tasks',
+        where: 'id = ?',
+        whereArgs: [id],
+      );
     } else {
       final list = _getWebList('planner_tasks');
       list.removeWhere((m) => m['id'] == id);
@@ -522,13 +549,21 @@ class DatabaseService {
   Future<List<Question>> getQuestions({String? category}) async {
     await init();
     if (_sqliteDb != null) {
-      final whereClause = category != null ? 'category = ? AND is_active = 1' : 'is_active = 1';
+      final whereClause = category != null
+          ? 'category = ? AND is_active = 1'
+          : 'is_active = 1';
       final whereArgs = category != null ? [category] : null;
-      final maps = await _sqliteDb!.query('questions', where: whereClause, whereArgs: whereArgs);
+      final maps = await _sqliteDb!.query(
+        'questions',
+        where: whereClause,
+        whereArgs: whereArgs,
+      );
       return maps.map(Question.fromMap).toList();
     } else {
       final list = _getWebList('questions');
-      var filtered = list.map((m) => Question.fromMap(m)).where((q) => q.isActive);
+      var filtered = list
+          .map((m) => Question.fromMap(m))
+          .where((q) => q.isActive);
       if (category != null) {
         filtered = filtered.where((q) => q.category == category);
       }
@@ -541,7 +576,11 @@ class DatabaseService {
     if (_sqliteDb != null) {
       final batch = _sqliteDb!.batch();
       for (final q in questions) {
-        batch.insert('questions', q.toMap(), conflictAlgorithm: sqflite.ConflictAlgorithm.ignore);
+        batch.insert(
+          'questions',
+          q.toMap(),
+          conflictAlgorithm: sqflite.ConflictAlgorithm.ignore,
+        );
       }
       await batch.commit(noResult: true);
     } else {
@@ -559,14 +598,18 @@ class DatabaseService {
   Future<int> getQuestionCount() async {
     await init();
     if (_sqliteDb != null) {
-      final result = await _sqliteDb!.rawQuery('SELECT COUNT(*) as count FROM questions');
+      final result = await _sqliteDb!.rawQuery(
+        'SELECT COUNT(*) as count FROM questions',
+      );
       return (result.first['count'] as int?) ?? 0;
     } else {
       return _getWebList('questions').length;
     }
   }
 
-  Future<List<QuestionResponse>> getResponsesForQuestion(String questionId) async {
+  Future<List<QuestionResponse>> getResponsesForQuestion(
+    String questionId,
+  ) async {
     await init();
     if (_sqliteDb != null) {
       final maps = await _sqliteDb!.query(
@@ -656,7 +699,8 @@ class DatabaseService {
       return maps.map(Person.fromMap).toList();
     } else {
       final list = _getWebList('people');
-      return list.map((m) => Person.fromMap(m)).toList()..sort((a, b) => a.name.compareTo(b.name));
+      return list.map((m) => Person.fromMap(m)).toList()
+        ..sort((a, b) => a.name.compareTo(b.name));
     }
   }
 
@@ -698,13 +742,21 @@ class DatabaseService {
   Future<List<HavenTemplate>> getAllTemplates({String? category}) async {
     await init();
     if (_sqliteDb != null) {
-      final where = category != null ? 'category = ? AND is_active = 1' : 'is_active = 1';
+      final where = category != null
+          ? 'category = ? AND is_active = 1'
+          : 'is_active = 1';
       final args = category != null ? [category] : null;
-      final maps = await _sqliteDb!.query('templates', where: where, whereArgs: args);
+      final maps = await _sqliteDb!.query(
+        'templates',
+        where: where,
+        whereArgs: args,
+      );
       return maps.map(HavenTemplate.fromMap).toList();
     } else {
       final list = _getWebList('templates');
-      var filtered = list.map((m) => HavenTemplate.fromMap(m)).where((t) => t.isActive);
+      var filtered = list
+          .map((m) => HavenTemplate.fromMap(m))
+          .where((t) => t.isActive);
       if (category != null) {
         filtered = filtered.where((t) => t.category == category);
       }
@@ -717,7 +769,11 @@ class DatabaseService {
     if (_sqliteDb != null) {
       final batch = _sqliteDb!.batch();
       for (final t in templates) {
-        batch.insert('templates', t.toMap(), conflictAlgorithm: sqflite.ConflictAlgorithm.ignore);
+        batch.insert(
+          'templates',
+          t.toMap(),
+          conflictAlgorithm: sqflite.ConflictAlgorithm.ignore,
+        );
       }
       await batch.commit(noResult: true);
     } else {
@@ -739,7 +795,11 @@ class DatabaseService {
   Future<HavenSettings> getSettings() async {
     await init();
     if (_sqliteDb != null) {
-      final maps = await _sqliteDb!.query('settings', where: 'key = ?', whereArgs: ['app_settings']);
+      final maps = await _sqliteDb!.query(
+        'settings',
+        where: 'key = ?',
+        whereArgs: ['app_settings'],
+      );
       if (maps.isNotEmpty) {
         final jsonStr = maps.first['value'] as String?;
         if (jsonStr != null && jsonStr.isNotEmpty) {
@@ -762,11 +822,10 @@ class DatabaseService {
     await init();
     final jsonStr = jsonEncode(settings.toMap());
     if (_sqliteDb != null) {
-      await _sqliteDb!.insert(
-        'settings',
-        {'key': 'app_settings', 'value': jsonStr},
-        conflictAlgorithm: sqflite.ConflictAlgorithm.replace,
-      );
+      await _sqliteDb!.insert('settings', {
+        'key': 'app_settings',
+        'value': jsonStr,
+      }, conflictAlgorithm: sqflite.ConflictAlgorithm.replace);
     } else {
       await _webPrefs?.setString('app_settings', jsonStr);
     }
@@ -814,11 +873,14 @@ class DatabaseService {
         'people': people.map((p) => p.toMap()).toList(),
         'question_responses': responses.map((r) => r.toMap()).toList(),
         'settings': settings.toMap(),
-      }
+      },
     };
   }
 
-  Future<bool> restoreFromPayload(Map<String, dynamic> payload, {bool merge = false}) async {
+  Future<bool> restoreFromPayload(
+    Map<String, dynamic> payload, {
+    bool merge = false,
+  }) async {
     await init();
     try {
       if (payload['app_name'] != 'Haven' || payload['schema_version'] == null) {
@@ -844,7 +906,9 @@ class DatabaseService {
       if (data['journal_entries'] != null) {
         final list = data['journal_entries'] as List;
         for (final item in list) {
-          await saveJournalEntry(JournalEntry.fromMap(Map<String, dynamic>.from(item as Map)));
+          await saveJournalEntry(
+            JournalEntry.fromMap(Map<String, dynamic>.from(item as Map)),
+          );
         }
       }
 
@@ -852,14 +916,18 @@ class DatabaseService {
       if (data['planner_tasks'] != null) {
         final list = data['planner_tasks'] as List;
         for (final item in list) {
-          await savePlannerTask(PlannerTask.fromMap(Map<String, dynamic>.from(item as Map)));
+          await savePlannerTask(
+            PlannerTask.fromMap(Map<String, dynamic>.from(item as Map)),
+          );
         }
       }
 
       if (data['sunday_reviews'] != null) {
         final list = data['sunday_reviews'] as List;
         for (final item in list) {
-          await saveSundayReview(SundayReview.fromMap(Map<String, dynamic>.from(item as Map)));
+          await saveSundayReview(
+            SundayReview.fromMap(Map<String, dynamic>.from(item as Map)),
+          );
         }
       }
 
@@ -867,7 +935,9 @@ class DatabaseService {
       if (data['goals'] != null) {
         final list = data['goals'] as List;
         for (final item in list) {
-          await saveGoal(HavenGoal.fromMap(Map<String, dynamic>.from(item as Map)));
+          await saveGoal(
+            HavenGoal.fromMap(Map<String, dynamic>.from(item as Map)),
+          );
         }
       }
 
@@ -875,7 +945,9 @@ class DatabaseService {
       if (data['people'] != null) {
         final list = data['people'] as List;
         for (final item in list) {
-          await savePerson(Person.fromMap(Map<String, dynamic>.from(item as Map)));
+          await savePerson(
+            Person.fromMap(Map<String, dynamic>.from(item as Map)),
+          );
         }
       }
 
@@ -883,7 +955,9 @@ class DatabaseService {
       if (data['question_responses'] != null) {
         final list = data['question_responses'] as List;
         for (final item in list) {
-          await saveQuestionResponse(QuestionResponse.fromMap(Map<String, dynamic>.from(item as Map)));
+          await saveQuestionResponse(
+            QuestionResponse.fromMap(Map<String, dynamic>.from(item as Map)),
+          );
         }
       }
 

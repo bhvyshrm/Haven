@@ -1,7 +1,8 @@
 class Person {
   final String id;
   final String name;
-  final String relationship; // e.g. 'Friend', 'Family', 'Mentor', 'Partner', 'Colleague'
+  final String
+  relationship; // e.g. 'Friend', 'Family', 'Mentor', 'Partner', 'Colleague'
   final String notes;
   final String importantDates;
   final DateTime createdAt;
@@ -56,8 +57,12 @@ class Person {
       relationship: (map['relationship'] as String?) ?? 'Friend',
       notes: (map['notes'] as String?) ?? '',
       importantDates: (map['important_dates'] as String?) ?? '',
-      createdAt: DateTime.tryParse(map['created_at'] as String? ?? '') ?? DateTime.now(),
-      updatedAt: DateTime.tryParse(map['updated_at'] as String? ?? '') ?? DateTime.now(),
+      createdAt:
+          DateTime.tryParse(map['created_at'] as String? ?? '') ??
+          DateTime.now(),
+      updatedAt:
+          DateTime.tryParse(map['updated_at'] as String? ?? '') ??
+          DateTime.now(),
     );
   }
 }

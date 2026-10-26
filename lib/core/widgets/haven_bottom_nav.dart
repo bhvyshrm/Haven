@@ -1,5 +1,7 @@
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
+
 import '../theme/haven_colors.dart';
 
 class HavenBottomNav extends StatelessWidget {
@@ -18,9 +20,15 @@ class HavenBottomNav extends StatelessWidget {
     final navBg = isDark
         ? HavenColors.darkSurface.withValues(alpha: 0.92)
         : HavenColors.lightCanvas.withValues(alpha: 0.92);
-    final borderColor = isDark ? HavenColors.darkBorder : HavenColors.lightBorder;
-    final activeColor = isDark ? HavenColors.darkTextPrimary : HavenColors.lightTextPrimary;
-    final inactiveColor = isDark ? HavenColors.darkTextSecondary : HavenColors.lightTextSecondary;
+    final borderColor = isDark
+        ? HavenColors.darkBorder
+        : HavenColors.lightBorder;
+    final activeColor = isDark
+        ? HavenColors.darkTextPrimary
+        : HavenColors.lightTextPrimary;
+    final inactiveColor = isDark
+        ? HavenColors.darkTextSecondary
+        : HavenColors.lightTextSecondary;
 
     return Align(
       alignment: Alignment.bottomCenter,
@@ -35,14 +43,19 @@ class HavenBottomNav extends StatelessWidget {
               child: Container(
                 width: double.infinity,
                 constraints: const BoxConstraints(maxWidth: 340.0),
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 8.0,
+                ),
                 decoration: BoxDecoration(
                   color: navBg,
                   borderRadius: BorderRadius.circular(9999.0),
                   border: Border.all(color: borderColor, width: 1.0),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.06),
+                      color: Colors.black.withValues(
+                        alpha: isDark ? 0.35 : 0.06,
+                      ),
                       blurRadius: 16.0,
                       offset: const Offset(0, 4),
                     ),
@@ -52,7 +65,9 @@ class HavenBottomNav extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     _NavItem(
-                      icon: currentIndex == 0 ? Icons.home_rounded : Icons.home_outlined,
+                      icon: currentIndex == 0
+                          ? Icons.home_rounded
+                          : Icons.home_outlined,
                       label: 'Home',
                       isSelected: currentIndex == 0,
                       activeColor: activeColor,
@@ -60,7 +75,9 @@ class HavenBottomNav extends StatelessWidget {
                       onTap: () => onIndexChanged(0),
                     ),
                     _NavItem(
-                      icon: currentIndex == 1 ? Icons.menu_book_rounded : Icons.menu_book_outlined,
+                      icon: currentIndex == 1
+                          ? Icons.menu_book_rounded
+                          : Icons.menu_book_outlined,
                       label: 'Journal',
                       isSelected: currentIndex == 1,
                       activeColor: activeColor,
@@ -68,7 +85,9 @@ class HavenBottomNav extends StatelessWidget {
                       onTap: () => onIndexChanged(1),
                     ),
                     _NavItem(
-                      icon: currentIndex == 2 ? Icons.edit_note_rounded : Icons.edit_note_outlined,
+                      icon: currentIndex == 2
+                          ? Icons.edit_note_rounded
+                          : Icons.edit_note_outlined,
                       label: 'Notes',
                       isSelected: currentIndex == 2,
                       activeColor: activeColor,
@@ -76,7 +95,9 @@ class HavenBottomNav extends StatelessWidget {
                       onTap: () => onIndexChanged(2),
                     ),
                     _NavItem(
-                      icon: currentIndex == 3 ? Icons.explore_rounded : Icons.explore_outlined,
+                      icon: currentIndex == 3
+                          ? Icons.explore_rounded
+                          : Icons.explore_outlined,
                       label: 'Discover',
                       isSelected: currentIndex == 3,
                       activeColor: activeColor,
@@ -127,11 +148,7 @@ class _NavItem extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                icon,
-                size: 26.0,
-                color: color,
-              ),
+              Icon(icon, size: 26.0, color: color),
               const SizedBox(height: 2.0),
               Container(
                 width: 4.0,

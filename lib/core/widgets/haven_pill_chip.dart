@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../theme/haven_colors.dart';
 import '../theme/haven_typography.dart';
 
@@ -19,10 +20,18 @@ class HavenPillChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryTextColor = isDark ? HavenColors.darkTextPrimary : HavenColors.lightTextPrimary;
-    final secondaryTextColor = isDark ? HavenColors.darkTextSecondary : HavenColors.lightTextSecondary;
-    final borderColor = isDark ? HavenColors.darkBorder : HavenColors.lightBorder;
-    final canvasColor = isDark ? HavenColors.darkCanvas : HavenColors.lightCanvas;
+    final primaryTextColor = isDark
+        ? HavenColors.darkTextPrimary
+        : HavenColors.lightTextPrimary;
+    final secondaryTextColor = isDark
+        ? HavenColors.darkTextSecondary
+        : HavenColors.lightTextSecondary;
+    final borderColor = isDark
+        ? HavenColors.darkBorder
+        : HavenColors.lightBorder;
+    final canvasColor = isDark
+        ? HavenColors.darkCanvas
+        : HavenColors.lightCanvas;
 
     final bgColor = isSelected ? primaryTextColor : Colors.transparent;
     final textColor = isSelected ? canvasColor : secondaryTextColor;
@@ -37,7 +46,10 @@ class HavenPillChip extends StatelessWidget {
           onTap: onTap,
           borderRadius: BorderRadius.circular(9999.0),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 7.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 7.0,
+            ),
             decoration: BoxDecoration(
               color: bgColor,
               borderRadius: BorderRadius.circular(9999.0),
@@ -50,11 +62,7 @@ class HavenPillChip extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 if (icon != null) ...[
-                  Icon(
-                    icon,
-                    size: 14.0,
-                    color: textColor,
-                  ),
+                  Icon(icon, size: 14.0, color: textColor),
                   const SizedBox(width: 6.0),
                 ],
                 Text(

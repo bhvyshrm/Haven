@@ -37,11 +37,15 @@ class HavenSettings {
     return HavenSettings(
       themeMode: themeMode ?? this.themeMode,
       isAppLockEnabled: isAppLockEnabled ?? this.isAppLockEnabled,
-      isDailyReminderEnabled: isDailyReminderEnabled ?? this.isDailyReminderEnabled,
+      isDailyReminderEnabled:
+          isDailyReminderEnabled ?? this.isDailyReminderEnabled,
       dailyReminderTime: dailyReminderTime ?? this.dailyReminderTime,
-      isWeeklyPlanReminderEnabled: isWeeklyPlanReminderEnabled ?? this.isWeeklyPlanReminderEnabled,
-      isSundayReviewReminderEnabled: isSundayReviewReminderEnabled ?? this.isSundayReviewReminderEnabled,
-      isWeeklyBackupReminderEnabled: isWeeklyBackupReminderEnabled ?? this.isWeeklyBackupReminderEnabled,
+      isWeeklyPlanReminderEnabled:
+          isWeeklyPlanReminderEnabled ?? this.isWeeklyPlanReminderEnabled,
+      isSundayReviewReminderEnabled:
+          isSundayReviewReminderEnabled ?? this.isSundayReviewReminderEnabled,
+      isWeeklyBackupReminderEnabled:
+          isWeeklyBackupReminderEnabled ?? this.isWeeklyBackupReminderEnabled,
       lastBackupDate: lastBackupDate ?? this.lastBackupDate,
       googleAccountEmail: googleAccountEmail ?? this.googleAccountEmail,
     );
@@ -54,8 +58,12 @@ class HavenSettings {
       'is_daily_reminder_enabled': isDailyReminderEnabled ? 1 : 0,
       'daily_reminder_time': dailyReminderTime,
       'is_weekly_plan_reminder_enabled': isWeeklyPlanReminderEnabled ? 1 : 0,
-      'is_sunday_review_reminder_enabled': isSundayReviewReminderEnabled ? 1 : 0,
-      'is_weekly_backup_reminder_enabled': isWeeklyBackupReminderEnabled ? 1 : 0,
+      'is_sunday_review_reminder_enabled': isSundayReviewReminderEnabled
+          ? 1
+          : 0,
+      'is_weekly_backup_reminder_enabled': isWeeklyBackupReminderEnabled
+          ? 1
+          : 0,
       'last_backup_date': lastBackupDate?.toIso8601String(),
       'google_account_email': googleAccountEmail,
     };
@@ -70,12 +78,18 @@ class HavenSettings {
     return HavenSettings(
       themeMode: mode,
       isAppLockEnabled: (map['is_app_lock_enabled'] as int? ?? 0) == 1,
-      isDailyReminderEnabled: (map['is_daily_reminder_enabled'] as int? ?? 0) == 1,
+      isDailyReminderEnabled:
+          (map['is_daily_reminder_enabled'] as int? ?? 0) == 1,
       dailyReminderTime: (map['daily_reminder_time'] as String?) ?? '20:00',
-      isWeeklyPlanReminderEnabled: (map['is_weekly_plan_reminder_enabled'] as int? ?? 0) == 1,
-      isSundayReviewReminderEnabled: (map['is_sunday_review_reminder_enabled'] as int? ?? 0) == 1,
-      isWeeklyBackupReminderEnabled: (map['is_weekly_backup_reminder_enabled'] as int? ?? 0) == 1,
-      lastBackupDate: DateTime.tryParse(map['last_backup_date'] as String? ?? ''),
+      isWeeklyPlanReminderEnabled:
+          (map['is_weekly_plan_reminder_enabled'] as int? ?? 0) == 1,
+      isSundayReviewReminderEnabled:
+          (map['is_sunday_review_reminder_enabled'] as int? ?? 0) == 1,
+      isWeeklyBackupReminderEnabled:
+          (map['is_weekly_backup_reminder_enabled'] as int? ?? 0) == 1,
+      lastBackupDate: DateTime.tryParse(
+        map['last_backup_date'] as String? ?? '',
+      ),
       googleAccountEmail: map['google_account_email'] as String?,
     );
   }

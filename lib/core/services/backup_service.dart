@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -19,16 +20,11 @@ class BackupResult {
     this.timestamp,
   });
 
-  factory BackupResult.ok(String message) => BackupResult(
-        success: true,
-        message: message,
-        timestamp: DateTime.now(),
-      );
+  factory BackupResult.ok(String message) =>
+      BackupResult(success: true, message: message, timestamp: DateTime.now());
 
-  factory BackupResult.error(String message) => BackupResult(
-        success: false,
-        message: message,
-      );
+  factory BackupResult.error(String message) =>
+      BackupResult(success: false, message: message);
 }
 
 class GoogleAuthClient extends http.BaseClient {
@@ -70,7 +66,8 @@ class BackupService {
       final payload = await DatabaseService.instance.exportBackupPayload();
       final jsonString = const JsonEncoder.withIndent('  ').convert(payload);
       final bytes = utf8.encode(jsonString);
-      final filename = 'haven_backup_${DateTime.now().toIso8601String().split('T').first}.json';
+      final filename =
+          'haven_backup_${DateTime.now().toIso8601String().split('T').first}.json';
 
       final file = XFile.fromData(
         Uint8List.fromList(bytes),
@@ -102,12 +99,17 @@ class BackupService {
       final content = utf8.decode(bytes);
 
       final decoded = jsonDecode(content) as Map<String, dynamic>;
-      final success = await DatabaseService.instance.restoreFromPayload(decoded, merge: merge);
+      final success = await DatabaseService.instance.restoreFromPayload(
+        decoded,
+        merge: merge,
+      );
 
       if (success) {
         return BackupResult.ok('Haven restored successfully from file');
       } else {
-        return BackupResult.error('The selected file is not a valid Haven backup archive');
+        return BackupResult.error(
+          'The selected file is not a valid Haven backup archive',
+        );
       }
     } catch (e) {
       debugPrint('Import from file failed: $e');
@@ -123,13 +125,13 @@ class BackupService {
     try {
       await _initGoogleSignIn();
       if (!GoogleSignIn.instance.supportsAuthenticate()) {
-        return BackupResult.error('Google Sign-In is not supported on this platform');
+        return BackupResult.error(
+          'Google Sign-In is not supported on this platform',
+        );
       }
 
       _currentUser = await GoogleSignIn.instance.authenticate(
-        scopeHint: [
-          drive.DriveApi.driveAppdataScope,
-        ],
+        scopeHint: [drive.DriveApi.driveAppdataScope],
       );
 
       if (_currentUser == null) {
@@ -159,9 +161,8 @@ class BackupService {
         if (!signInRes.success) return signInRes;
       }
 
-      final clientAuth = await _currentUser!.authorizationClient.authorizeScopes([
-        drive.DriveApi.driveAppdataScope,
-      ]);
+      final clientAuth = await _currentUser!.authorizationClient
+          .authorizeScopes([drive.DriveApi.driveAppdataScope]);
 
       final authHeaders = {'Authorization': 'Bearer ${clientAuth.accessToken}'};
       final authenticateClient = GoogleAuthClient(authHeaders);
@@ -196,16 +197,16 @@ class BackupService {
           uploadMedia: media,
         );
       } else {
-        await driveApi.files.create(
-          driveFile,
-          uploadMedia: media,
-        );
+        await driveApi.files.create(driveFile, uploadMedia: media);
       }
 
       // Update settings with last backup time
       final settings = await DatabaseService.instance.getSettings();
       await DatabaseService.instance.saveSettings(
-        settings.copyWith(lastBackupDate: DateTime.now(), googleAccountEmail: _currentUser!.email),
+        settings.copyWith(
+          lastBackupDate: DateTime.now(),
+          googleAccountEmail: _currentUser!.email,
+        ),
       );
 
       return BackupResult.ok('Backup saved to Google Drive (app data folder)');
@@ -222,9 +223,8 @@ class BackupService {
         if (!signInRes.success) return signInRes;
       }
 
-      final clientAuth = await _currentUser!.authorizationClient.authorizeScopes([
-        drive.DriveApi.driveAppdataScope,
-      ]);
+      final clientAuth = await _currentUser!.authorizationClient
+          .authorizeScopes([drive.DriveApi.driveAppdataScope]);
 
       final authHeaders = {'Authorization': 'Bearer ${clientAuth.accessToken}'};
       final authenticateClient = GoogleAuthClient(authHeaders);
@@ -236,7 +236,9 @@ class BackupService {
       );
 
       if (fileList.files == null || fileList.files!.isEmpty) {
-        return BackupResult.error('No Haven backup found in your Google Drive app data');
+        return BackupResult.error(
+          'No Haven backup found in your Google Drive app data',
+        );
       }
 
       final fileId = fileList.files!.first.id!;
@@ -253,11 +255,16 @@ class BackupService {
       final jsonString = utf8.decode(dataStore);
       final decoded = jsonDecode(jsonString) as Map<String, dynamic>;
 
-      final success = await DatabaseService.instance.restoreFromPayload(decoded, merge: merge);
+      final success = await DatabaseService.instance.restoreFromPayload(
+        decoded,
+        merge: merge,
+      );
       if (success) {
         return BackupResult.ok('Restored latest backup from Google Drive');
       } else {
-        return BackupResult.error('The backup in Google Drive is corrupted or invalid');
+        return BackupResult.error(
+          'The backup in Google Drive is corrupted or invalid',
+        );
       }
     } catch (e) {
       debugPrint('Google Drive restore error: $e');

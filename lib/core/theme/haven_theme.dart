@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import 'haven_colors.dart';
 import 'haven_typography.dart';
 
@@ -46,9 +47,13 @@ class HavenTheme {
       ),
       textTheme: TextTheme(
         displayLarge: HavenTypography.display(HavenColors.lightTextPrimary),
-        displayMedium: HavenTypography.displayMobile(HavenColors.lightTextPrimary),
+        displayMedium: HavenTypography.displayMobile(
+          HavenColors.lightTextPrimary,
+        ),
         headlineLarge: HavenTypography.headlineLg(HavenColors.lightTextPrimary),
-        headlineMedium: HavenTypography.headlineMd(HavenColors.lightTextPrimary),
+        headlineMedium: HavenTypography.headlineMd(
+          HavenColors.lightTextPrimary,
+        ),
         headlineSmall: HavenTypography.headlineSm(HavenColors.lightTextPrimary),
         bodyLarge: HavenTypography.bodyLg(HavenColors.lightTextPrimary),
         bodyMedium: HavenTypography.bodyMd(HavenColors.lightTextPrimary),
@@ -80,9 +85,15 @@ class HavenTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12.0),
-          borderSide: const BorderSide(color: HavenColors.lightTextPrimary, width: 1.0),
+          borderSide: const BorderSide(
+            color: HavenColors.lightTextPrimary,
+            width: 1.0,
+          ),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16.0,
+          vertical: 14.0,
+        ),
       ),
     );
   }
@@ -127,7 +138,9 @@ class HavenTheme {
       ),
       textTheme: TextTheme(
         displayLarge: HavenTypography.display(HavenColors.darkTextPrimary),
-        displayMedium: HavenTypography.displayMobile(HavenColors.darkTextPrimary),
+        displayMedium: HavenTypography.displayMobile(
+          HavenColors.darkTextPrimary,
+        ),
         headlineLarge: HavenTypography.headlineLg(HavenColors.darkTextPrimary),
         headlineMedium: HavenTypography.headlineMd(HavenColors.darkTextPrimary),
         headlineSmall: HavenTypography.headlineSm(HavenColors.darkTextPrimary),
@@ -161,9 +174,15 @@ class HavenTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12.0),
-          borderSide: const BorderSide(color: HavenColors.darkTextPrimary, width: 1.0),
+          borderSide: const BorderSide(
+            color: HavenColors.darkTextPrimary,
+            width: 1.0,
+          ),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16.0,
+          vertical: 14.0,
+        ),
       ),
     );
   }

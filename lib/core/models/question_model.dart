@@ -1,7 +1,8 @@
 class Question {
   final String id;
   final String text;
-  final String category; // 'My Story', 'My People', 'My Interests', 'My Future', 'General'
+  final String
+  category; // 'My Story', 'My People', 'My Interests', 'My Future', 'General'
   final List<String> tags;
   final bool isActive;
 
@@ -93,8 +94,12 @@ class QuestionResponse {
       answerText: (map['answer_text'] as String?) ?? '',
       responseDate: (map['response_date'] as String?) ?? '',
       source: (map['source'] as String?) ?? 'daily',
-      createdAt: DateTime.tryParse(map['created_at'] as String? ?? '') ?? DateTime.now(),
-      updatedAt: DateTime.tryParse(map['updated_at'] as String? ?? '') ?? DateTime.now(),
+      createdAt:
+          DateTime.tryParse(map['created_at'] as String? ?? '') ??
+          DateTime.now(),
+      updatedAt:
+          DateTime.tryParse(map['updated_at'] as String? ?? '') ??
+          DateTime.now(),
     );
   }
 }

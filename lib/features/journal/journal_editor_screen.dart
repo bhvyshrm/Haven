@@ -1,0 +1,781 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
+
+import '../../core/state/haven_state.dart';
+import '../../core/models/journal_entry_model.dart';
+import '../../core/theme/haven_colors.dart';
+import '../../core/theme/haven_typography.dart';
+import '../../core/widgets/haven_responsive_container.dart';
+
+class JournalEditorScreen extends StatefulWidget {
+  final String entryId;
+
+  const JournalEditorScreen({super.key, required this.entryId});
+
+  @override
+  State<JournalEditorScreen> createState() => _JournalEditorScreenState();
+}
+
+class _JournalEditorScreenState extends State<JournalEditorScreen> {
+  late TextEditingController _titleController;
+  late TextEditingController _bodyController;
+  final FocusNode _bodyFocusNode = FocusNode();
+
+  JournalEntry? _currentEntry;
+  Timer? _debounceTimer;
+
+  // Undo/Redo history stack
+  final List<String> _undoStack = [];
+  final List<String> _redoStack = [];
+  bool _isUndoOrRedoOperation = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _titleController = TextEditingController();
+    _bodyController = TextEditingController();
+
+    _loadEntry();
+  }
+
+  void _loadEntry() {
+    final state = context.read<HavenState>();
+    final match = state.journalEntries.where((e) => e.id == widget.entryId);
+    if (match.isNotEmpty) {
+      _currentEntry = match.first;
+      _titleController.text = _currentEntry!.title;
+      _bodyController.text = _currentEntry!.body;
+      _undoStack.add(_currentEntry!.body);
+    }
+
+    _titleController.addListener(_onTextChanged);
+    _bodyController.addListener(_onBodyChanged);
+  }
+
+  void _onBodyChanged() {
+    if (!_isUndoOrRedoOperation) {
+      if (_undoStack.isEmpty || _undoStack.last != _bodyController.text) {
+        _undoStack.add(_bodyController.text);
+        _redoStack.clear();
+      }
+    }
+    _onTextChanged();
+  }
+
+  void _onTextChanged() {
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 600), _saveQuietly);
+  }
+
+  Future<void> _saveQuietly() async {
+    if (_currentEntry == null) return;
+    final title = _titleController.text;
+    final body = _bodyController.text;
+
+    if (title == _currentEntry!.title && body == _currentEntry!.body) return;
+
+    _currentEntry = _currentEntry!.copyWith(
+      title: title,
+      body: body,
+      updatedAt: DateTime.now(),
+    );
+
+    await context.read<HavenState>().saveJournalEntry(_currentEntry!);
+  }
+
+  @override
+  void dispose() {
+    _debounceTimer?.cancel();
+    _flushSave();
+    _titleController.dispose();
+    _bodyController.dispose();
+    _bodyFocusNode.dispose();
+    super.dispose();
+  }
+
+  Future<void> _flushSave() async {
+    if (_currentEntry == null) return;
+    final title = _titleController.text.trim();
+    final body = _bodyController.text.trim();
+
+    if (title != _currentEntry!.title || body != _currentEntry!.body) {
+      _currentEntry = _currentEntry!.copyWith(title: title, body: body);
+      await context.read<HavenState>().saveJournalEntry(_currentEntry!);
+    }
+  }
+
+  void _undo() {
+    if (_undoStack.length > 1) {
+      _isUndoOrRedoOperation = true;
+      final current = _undoStack.removeLast();
+      _redoStack.add(current);
+      final previous = _undoStack.last;
+      _bodyController.text = previous;
+      _bodyController.selection = TextSelection.collapsed(
+        offset: previous.length,
+      );
+      _isUndoOrRedoOperation = false;
+      _onTextChanged();
+    }
+  }
+
+  void _redo() {
+    if (_redoStack.isNotEmpty) {
+      _isUndoOrRedoOperation = true;
+      final next = _redoStack.removeLast();
+      _undoStack.add(next);
+      _bodyController.text = next;
+      _bodyController.selection = TextSelection.collapsed(offset: next.length);
+      _isUndoOrRedoOperation = false;
+      _onTextChanged();
+    }
+  }
+
+  void _selectAll() {
+    _bodyController.selection = TextSelection(
+      baseOffset: 0,
+      extentOffset: _bodyController.text.length,
+    );
+    _bodyFocusNode.requestFocus();
+  }
+
+  double _getFontSizeValue(String? size) {
+    switch (size) {
+      case 'sm':
+        return 15.0;
+      case 'lg':
+        return 20.0;
+      case 'md':
+      default:
+        return 17.0;
+    }
+  }
+
+  String _formatDateHeader(String? dateStr) {
+    if (dateStr == null || dateStr.isEmpty) return 'TODAY';
+    try {
+      final dt = DateTime.parse(dateStr);
+      return DateFormat('EEEE, d MMMM').format(dt).toUpperCase();
+    } catch (_) {
+      return dateStr.toUpperCase();
+    }
+  }
+
+  void _showOptionsMenu(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        return _JournalOptionsSheet(
+          entry: _currentEntry!,
+          onColorSelected: (colorId) async {
+            setState(() {
+              _currentEntry = _currentEntry!.copyWith(colorId: colorId);
+            });
+            await context.read<HavenState>().saveJournalEntry(_currentEntry!);
+          },
+          onFontSizeChanged: (fontSize) async {
+            setState(() {
+              _currentEntry = _currentEntry!.copyWith(fontSize: fontSize);
+            });
+            await context.read<HavenState>().saveJournalEntry(_currentEntry!);
+          },
+          onSelectAll: () {
+            Navigator.pop(sheetContext);
+            _selectAll();
+          },
+          onUndo: () {
+            Navigator.pop(sheetContext);
+            _undo();
+          },
+          onRedo: () {
+            Navigator.pop(sheetContext);
+            _redo();
+          },
+          onDelete: () {
+            Navigator.pop(sheetContext);
+            _confirmDelete(context);
+          },
+        );
+      },
+    );
+  }
+
+  void _confirmDelete(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showDialog(
+      context: context,
+      builder: (dlgContext) {
+        return AlertDialog(
+          backgroundColor: isDark
+              ? HavenColors.darkSurface
+              : HavenColors.lightCanvas,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.0),
+            side: BorderSide(
+              color: isDark ? HavenColors.darkBorder : HavenColors.lightBorder,
+            ),
+          ),
+          title: Text(
+            'Delete journal entry?',
+            style: HavenTypography.headlineSm(
+              isDark
+                  ? HavenColors.darkTextPrimary
+                  : HavenColors.lightTextPrimary,
+            ),
+          ),
+          content: Text(
+            'Are you sure you want to delete this journal entry for ${_formatDateHeader(_currentEntry?.date)}?',
+            style: HavenTypography.bodySm(
+              isDark
+                  ? HavenColors.darkTextSecondary
+                  : HavenColors.lightTextSecondary,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dlgContext),
+              child: Text(
+                'Cancel',
+                style: HavenTypography.labelMd(
+                  isDark
+                      ? HavenColors.darkTextSecondary
+                      : HavenColors.lightTextSecondary,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(dlgContext);
+                await context.read<HavenState>().deleteJournalEntry(
+                  _currentEntry!.id,
+                );
+                if (context.mounted) {
+                  Navigator.pop(context);
+                }
+              },
+              child: Text(
+                'Delete',
+                style: HavenTypography.labelMd(HavenColors.error)
+                    .copyWith(fontWeight: FontWeight.w600),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final palette = HavenColors.getColorById(
+      _currentEntry?.colorId,
+      isAppDark: isDark,
+    );
+
+    final pageBg = _currentEntry?.colorId != null
+        ? palette.color
+        : (isDark ? HavenColors.darkCanvas : HavenColors.lightCanvas);
+    final textPrimary = _currentEntry?.colorId != null
+        ? palette.textColor
+        : (isDark ? HavenColors.darkTextPrimary : HavenColors.lightTextPrimary);
+    final textSecondary = _currentEntry?.colorId != null
+        ? palette.secondaryColor
+        : (isDark
+              ? HavenColors.darkTextSecondary
+              : HavenColors.lightTextSecondary);
+
+    final fontSize = _getFontSizeValue(_currentEntry?.fontSize);
+
+    return Scaffold(
+      backgroundColor: pageBg,
+      body: SafeArea(
+        child: HavenResponsiveContainer(
+          child: Column(
+            children: [
+              // Top Bar
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 8.0,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back_rounded, size: 24.0),
+                      color: textPrimary,
+                      onPressed: () {
+                        _flushSave();
+                        Navigator.pop(context);
+                      },
+                      tooltip: 'Back',
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.more_vert_rounded, size: 24.0),
+                      color: textPrimary,
+                      onPressed: () => _showOptionsMenu(context),
+                      tooltip: 'More options',
+                    ),
+                  ],
+                ),
+              ),
+
+              // Canvas Writing Area
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24.0,
+                    vertical: 8.0,
+                  ),
+                  children: [
+                    // Date Anchor
+                    Text(
+                      _formatDateHeader(_currentEntry?.date),
+                      style: HavenTypography.caption(textSecondary).copyWith(
+                        letterSpacing: 1.0,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 12.0),
+
+                    // Title Field
+                    TextField(
+                      controller: _titleController,
+                      style: HavenTypography.headlineMd(textPrimary)
+                          .copyWith(fontWeight: FontWeight.w600, height: 1.3),
+                      cursorColor: textPrimary,
+                      decoration: InputDecoration(
+                        hintText: 'Give today a title...',
+                        hintStyle: HavenTypography.headlineMd(textSecondary)
+                            .copyWith(fontWeight: FontWeight.w500),
+                        filled: false,
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    ),
+                    const SizedBox(height: 16.0),
+
+                    // Multiline Body Field
+                    TextField(
+                      controller: _bodyController,
+                      focusNode: _bodyFocusNode,
+                      maxLines: null,
+                      keyboardType: TextInputType.multiline,
+                      style: TextStyle(
+                        fontFamily: HavenTypography.fontFamily,
+                        fontSize: fontSize,
+                        height: 1.65,
+                        color: textPrimary,
+                      ),
+                      cursorColor: textPrimary,
+                      decoration: InputDecoration(
+                        hintText: 'Start writing...',
+                        hintStyle: TextStyle(
+                          fontFamily: HavenTypography.fontFamily,
+                          fontSize: fontSize,
+                          height: 1.65,
+                          color: textSecondary,
+                        ),
+                        filled: false,
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    ),
+                    const SizedBox(height: 120.0),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _JournalOptionsSheet extends StatefulWidget {
+  final JournalEntry entry;
+  final ValueChanged<String?> onColorSelected;
+  final ValueChanged<String> onFontSizeChanged;
+  final VoidCallback onSelectAll;
+  final VoidCallback onUndo;
+  final VoidCallback onRedo;
+  final VoidCallback onDelete;
+
+  const _JournalOptionsSheet({
+    required this.entry,
+    required this.onColorSelected,
+    required this.onFontSizeChanged,
+    required this.onSelectAll,
+    required this.onUndo,
+    required this.onRedo,
+    required this.onDelete,
+  });
+
+  @override
+  State<_JournalOptionsSheet> createState() => _JournalOptionsSheetState();
+}
+
+class _JournalOptionsSheetState extends State<_JournalOptionsSheet> {
+  bool _showColorPicker = false;
+  late String _selectedSize;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedSize = widget.entry.fontSize ?? 'md';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final sheetBg = isDark ? const Color(0xFF141414) : Colors.white;
+    final itemBg = isDark ? const Color(0xFF1E1E1E) : const Color(0xFFF6F6F6);
+    final borderColor = isDark
+        ? const Color(0xFF2C2C2C)
+        : const Color(0xFFE8E8E8);
+    final textPrimary = isDark ? Colors.white : const Color(0xFF171717);
+    final textSecondary = isDark
+        ? const Color(0xFFA3A3A3)
+        : const Color(0xFF707070);
+
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 440.0),
+      margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
+      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+      decoration: BoxDecoration(
+        color: sheetBg,
+        borderRadius: BorderRadius.circular(24.0),
+        border: Border.all(color: borderColor, width: 1.0),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.25),
+            blurRadius: 24.0,
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Container(
+              width: 36.0,
+              height: 4.0,
+              margin: const EdgeInsets.only(bottom: 16.0),
+              decoration: BoxDecoration(
+                color: borderColor,
+                borderRadius: BorderRadius.circular(999.0),
+              ),
+            ),
+          ),
+
+          if (_showColorPicker) ...[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                TextButton.icon(
+                  onPressed: () => setState(() => _showColorPicker = false),
+                  icon: const Icon(Icons.arrow_back_rounded, size: 18.0),
+                  label: const Text('Back'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: textPrimary,
+                    padding: EdgeInsets.zero,
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    widget.onColorSelected(null);
+                    setState(() => _showColorPicker = false);
+                  },
+                  child: Text(
+                    'Restore default',
+                    style: HavenTypography.labelSm(textSecondary),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12.0),
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 4,
+                crossAxisSpacing: 10.0,
+                mainAxisSpacing: 10.0,
+                childAspectRatio: 0.85,
+              ),
+              itemCount: HavenColors.writingPalette.length,
+              itemBuilder: (context, index) {
+                final item = HavenColors.writingPalette[index];
+                final isSelected = widget.entry.colorId == item.id;
+                return GestureDetector(
+                  onTap: () {
+                    widget.onColorSelected(item.id);
+                    setState(() => _showColorPicker = false);
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: itemBg,
+                      borderRadius: BorderRadius.circular(12.0),
+                      border: Border.all(
+                        color: isSelected ? textPrimary : borderColor,
+                        width: isSelected ? 2.0 : 1.0,
+                      ),
+                    ),
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: 28.0,
+                          height: 28.0,
+                          decoration: BoxDecoration(
+                            color: item.color,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: borderColor, width: 1.0),
+                          ),
+                          child: isSelected
+                              ? Icon(
+                                  Icons.check,
+                                  size: 16.0,
+                                  color: item.textColor,
+                                )
+                              : null,
+                        ),
+                        const SizedBox(height: 6.0),
+                        Text(
+                          item.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: HavenTypography.caption(textSecondary)
+                              .copyWith(fontSize: 10.0),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 12.0),
+          ] else ...[
+            Text(
+              'APPEARANCE',
+              style: HavenTypography.caption(textSecondary)
+                  .copyWith(fontWeight: FontWeight.w600, letterSpacing: 0.8),
+            ),
+            const SizedBox(height: 8.0),
+            Container(
+              decoration: BoxDecoration(
+                color: itemBg,
+                borderRadius: BorderRadius.circular(16.0),
+                border: Border.all(color: borderColor, width: 1.0),
+              ),
+              child: Column(
+                children: [
+                  ListTile(
+                    onTap: () => setState(() => _showColorPicker = true),
+                    leading: Icon(
+                      Icons.palette_outlined,
+                      size: 20.0,
+                      color: textSecondary,
+                    ),
+                    title: Text(
+                      'Background colour',
+                      style: HavenTypography.bodyMd(textPrimary),
+                    ),
+                    trailing: const Icon(
+                      Icons.chevron_right_rounded,
+                      size: 20.0,
+                    ),
+                  ),
+                  Divider(height: 1.0, color: borderColor),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0,
+                      vertical: 10.0,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.format_size_rounded,
+                              size: 20.0,
+                              color: textSecondary,
+                            ),
+                            const SizedBox(width: 12.0),
+                            Text(
+                              'Text size',
+                              style: HavenTypography.bodyMd(textPrimary),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            _JournalSizeBtn(
+                              label: 'S',
+                              isSelected: _selectedSize == 'sm',
+                              onTap: () {
+                                setState(() => _selectedSize = 'sm');
+                                widget.onFontSizeChanged('sm');
+                              },
+                            ),
+                            const SizedBox(width: 6.0),
+                            _JournalSizeBtn(
+                              label: 'M',
+                              isSelected: _selectedSize == 'md',
+                              onTap: () {
+                                setState(() => _selectedSize = 'md');
+                                widget.onFontSizeChanged('md');
+                              },
+                            ),
+                            const SizedBox(width: 6.0),
+                            _JournalSizeBtn(
+                              label: 'L',
+                              isSelected: _selectedSize == 'lg',
+                              onTap: () {
+                                setState(() => _selectedSize = 'lg');
+                                widget.onFontSizeChanged('lg');
+                              },
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 18.0),
+            Text(
+              'WRITING ACTIONS',
+              style: HavenTypography.caption(textSecondary)
+                  .copyWith(fontWeight: FontWeight.w600, letterSpacing: 0.8),
+            ),
+            const SizedBox(height: 8.0),
+            Container(
+              decoration: BoxDecoration(
+                color: itemBg,
+                borderRadius: BorderRadius.circular(16.0),
+                border: Border.all(color: borderColor, width: 1.0),
+              ),
+              child: Column(
+                children: [
+                  ListTile(
+                    onTap: widget.onSelectAll,
+                    leading: Icon(
+                      Icons.select_all_rounded,
+                      size: 20.0,
+                      color: textSecondary,
+                    ),
+                    title: Text(
+                      'Select all text',
+                      style: HavenTypography.bodyMd(textPrimary),
+                    ),
+                  ),
+                  Divider(height: 1.0, color: borderColor),
+                  ListTile(
+                    onTap: widget.onUndo,
+                    leading: Icon(
+                      Icons.undo_rounded,
+                      size: 20.0,
+                      color: textSecondary,
+                    ),
+                    title: Text(
+                      'Undo',
+                      style: HavenTypography.bodyMd(textPrimary),
+                    ),
+                  ),
+                  Divider(height: 1.0, color: borderColor),
+                  ListTile(
+                    onTap: widget.onRedo,
+                    leading: Icon(
+                      Icons.redo_rounded,
+                      size: 20.0,
+                      color: textSecondary,
+                    ),
+                    title: Text(
+                      'Redo',
+                      style: HavenTypography.bodyMd(textPrimary),
+                    ),
+                  ),
+                  Divider(height: 1.0, color: borderColor),
+                  ListTile(
+                    onTap: widget.onDelete,
+                    leading: const Icon(
+                      Icons.delete_outline_rounded,
+                      size: 20.0,
+                      color: HavenColors.error,
+                    ),
+                    title: Text(
+                      'Delete entry',
+                      style: HavenTypography.bodyMd(HavenColors.error),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _JournalSizeBtn extends StatelessWidget {
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _JournalSizeBtn({
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final activeBg = isDark ? Colors.white : const Color(0xFF171717);
+    final activeText = isDark ? const Color(0xFF171717) : Colors.white;
+    final inactiveText = isDark
+        ? const Color(0xFFA3A3A3)
+        : const Color(0xFF707070);
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8.0),
+      child: Container(
+        width: 32.0,
+        height: 28.0,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: isSelected ? activeBg : Colors.transparent,
+          borderRadius: BorderRadius.circular(8.0),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 13.0,
+            fontWeight: FontWeight.w600,
+            color: isSelected ? activeText : inactiveText,
+          ),
+        ),
+      ),
+    );
+  }
+}

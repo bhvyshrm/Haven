@@ -25,7 +25,9 @@ class WeeklyPlan {
       id: map['id'] as String,
       year: (map['year'] as int?) ?? DateTime.now().year,
       weekNumber: (map['week_number'] as int?) ?? 1,
-      createdAt: DateTime.tryParse(map['created_at'] as String? ?? '') ?? DateTime.now(),
+      createdAt:
+          DateTime.tryParse(map['created_at'] as String? ?? '') ??
+          DateTime.now(),
     );
   }
 }
@@ -95,7 +97,9 @@ class PlannerTask {
       isCompleted: (map['is_completed'] as int? ?? 0) == 1,
       dueDate: map['due_date'] as String?,
       sortOrder: (map['sort_order'] as int?) ?? 0,
-      createdAt: DateTime.tryParse(map['created_at'] as String? ?? '') ?? DateTime.now(),
+      createdAt:
+          DateTime.tryParse(map['created_at'] as String? ?? '') ??
+          DateTime.now(),
     );
   }
 }
@@ -165,7 +169,9 @@ class SundayReview {
       unfinishedNotes: (map['unfinished_notes'] as String?) ?? '',
       lessonsLearned: (map['lessons_learned'] as String?) ?? '',
       changesNextWeek: (map['changes_next_week'] as String?) ?? '',
-      createdAt: DateTime.tryParse(map['created_at'] as String? ?? '') ?? DateTime.now(),
+      createdAt:
+          DateTime.tryParse(map['created_at'] as String? ?? '') ??
+          DateTime.now(),
     );
   }
 }
@@ -229,7 +235,9 @@ class HavenGoal {
       periodType: (map['period_type'] as String?) ?? 'monthly',
       targetDate: map['target_date'] as String?,
       isCompleted: (map['is_completed'] as int? ?? 0) == 1,
-      createdAt: DateTime.tryParse(map['created_at'] as String? ?? '') ?? DateTime.now(),
+      createdAt:
+          DateTime.tryParse(map['created_at'] as String? ?? '') ??
+          DateTime.now(),
     );
   }
 }

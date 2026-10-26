@@ -62,8 +62,12 @@ class JournalEntry {
       body: (map['body'] as String?) ?? '',
       colorId: map['color_id'] as String?,
       fontSize: (map['font_size'] as String?) ?? 'md',
-      createdAt: DateTime.tryParse(map['created_at'] as String? ?? '') ?? DateTime.now(),
-      updatedAt: DateTime.tryParse(map['updated_at'] as String? ?? '') ?? DateTime.now(),
+      createdAt:
+          DateTime.tryParse(map['created_at'] as String? ?? '') ??
+          DateTime.now(),
+      updatedAt:
+          DateTime.tryParse(map['updated_at'] as String? ?? '') ??
+          DateTime.now(),
     );
   }
 }

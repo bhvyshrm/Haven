@@ -95,7 +95,10 @@ class HavenColors {
     ),
   ];
 
-  static WritingPaletteColor getColorById(String? id, {bool isAppDark = false}) {
+  static WritingPaletteColor getColorById(
+    String? id, {
+    bool isAppDark = false,
+  }) {
     if (id == null || id.isEmpty) {
       return isAppDark ? writingPalette[0] : writingPalette[1];
     }

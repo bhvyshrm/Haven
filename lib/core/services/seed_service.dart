@@ -84,7 +84,8 @@ class SeedService {
         id: 'tpl_college_life',
         title: 'My College Life',
         category: 'College',
-        description: 'Semesters, courses, campus walks, and formative friendships.',
+        description:
+            'Semesters, courses, campus walks, and formative friendships.',
         content: '''# College Life
 
 ### The Term / Year
@@ -104,7 +105,8 @@ class SeedService {
         id: 'tpl_school_days',
         title: 'My School Memories',
         category: 'School',
-        description: 'Teachers, playground quiet, milestones, and early lessons.',
+        description:
+            'Teachers, playground quiet, milestones, and early lessons.',
         content: '''# My School Memories
 
 - Grade / Age: 
@@ -122,7 +124,8 @@ class SeedService {
         id: 'tpl_books_worth_remembering',
         title: 'Books Worth Remembering',
         category: 'Books & Movies',
-        description: 'Passages, impressions, and how a book altered your perspective.',
+        description:
+            'Passages, impressions, and how a book altered your perspective.',
         content: '''# Books Worth Remembering
 
 - Title & Author: 
@@ -157,7 +160,8 @@ class SeedService {
         id: 'tpl_daily_routine',
         title: 'Daily Routine & Rhythm',
         category: 'Routines',
-        description: 'Morning rituals, focused intervals, and evening wind-down.',
+        description:
+            'Morning rituals, focused intervals, and evening wind-down.',
         content: '''# Daily Routine & Rhythm
 
 ### Morning Cadence
@@ -208,7 +212,8 @@ class SeedService {
         id: 'tpl_my_goals',
         title: 'My Annual & Seasonal Goals',
         category: 'Ideas',
-        description: 'Calm, intentional direction rather than exhausting hustle.',
+        description:
+            'Calm, intentional direction rather than exhausting hustle.',
         content: '''# Seasonal Direction
 
 ### What I am Moving Toward
@@ -226,7 +231,8 @@ class SeedService {
         id: 'tpl_places_been',
         title: 'Places I Have Been',
         category: 'Personal',
-        description: 'Cities, rooms, landscapes, and the air of unfamiliar places.',
+        description:
+            'Cities, rooms, landscapes, and the air of unfamiliar places.',
         content: '''# Places I Have Been
 
 - Location: 
@@ -245,25 +251,57 @@ class SeedService {
     int counter = 1;
 
     void addQ(String text, String category, List<String> tags) {
-      questions.add(Question(
-        id: 'q_${counter.toString().padLeft(4, '0')}',
-        text: text,
-        category: category,
-        tags: tags,
-      ));
+      questions.add(
+        Question(
+          id: 'q_${counter.toString().padLeft(4, '0')}',
+          text: text,
+          category: category,
+          tags: tags,
+        ),
+      );
       counter++;
     }
 
     // Daily & Gratitude
-    addQ('What is something small that made today better?', 'General', ['gratitude', 'daily']);
-    addQ('What was the quietest moment of your day today?', 'General', ['reflection', 'calm']);
-    addQ('What did you notice today that you usually walk right past?', 'General', ['mindfulness']);
-    addQ('What conversation brought you unexpected comfort recently?', 'General', ['people', 'dialogue']);
-    addQ('What is one thing you can forgive yourself for today?', 'General', ['grace', 'mind']);
-    addQ('What did you do today simply because you wanted to?', 'General', ['freedom']);
-    addQ('Where did your mind wander when you had a free moment today?', 'General', ['thoughts']);
-    addQ('What task felt surprisingly light once you finally began?', 'General', ['work', 'action']);
-    addQ('Who made your life slightly easier or kinder this week?', 'General', ['gratitude', 'people']);
+    addQ('What is something small that made today better?', 'General', [
+      'gratitude',
+      'daily',
+    ]);
+    addQ('What was the quietest moment of your day today?', 'General', [
+      'reflection',
+      'calm',
+    ]);
+    addQ(
+      'What did you notice today that you usually walk right past?',
+      'General',
+      ['mindfulness'],
+    );
+    addQ(
+      'What conversation brought you unexpected comfort recently?',
+      'General',
+      ['people', 'dialogue'],
+    );
+    addQ('What is one thing you can forgive yourself for today?', 'General', [
+      'grace',
+      'mind',
+    ]);
+    addQ('What did you do today simply because you wanted to?', 'General', [
+      'freedom',
+    ]);
+    addQ(
+      'Where did your mind wander when you had a free moment today?',
+      'General',
+      ['thoughts'],
+    );
+    addQ(
+      'What task felt surprisingly light once you finally began?',
+      'General',
+      ['work', 'action'],
+    );
+    addQ('Who made your life slightly easier or kinder this week?', 'General', [
+      'gratitude',
+      'people',
+    ]);
     addQ('What sound brought you stillness today?', 'General', ['senses']);
 
     // My Story (Formative, Childhood, Lessons)
@@ -420,12 +458,34 @@ class SeedService {
     }
 
     // Additional deep reflection questions to build up to comprehensive catalog
-    final categories = ['My Story', 'My People', 'My Interests', 'My Future', 'General'];
+    final categories = [
+      'My Story',
+      'My People',
+      'My Interests',
+      'My Future',
+      'General',
+    ];
     final themes = [
-      'memory', 'friendship', 'gratitude', 'craft', 'hope',
-      'silence', 'family', 'curiosity', 'courage', 'forgiveness',
-      'nature', 'routines', 'books', 'patience', 'boundaries',
-      'simplicity', 'lessons', 'travel', 'home', 'purpose',
+      'memory',
+      'friendship',
+      'gratitude',
+      'craft',
+      'hope',
+      'silence',
+      'family',
+      'curiosity',
+      'courage',
+      'forgiveness',
+      'nature',
+      'routines',
+      'books',
+      'patience',
+      'boundaries',
+      'simplicity',
+      'lessons',
+      'travel',
+      'home',
+      'purpose',
     ];
 
     int catIdx = 0;
@@ -438,64 +498,83 @@ class SeedService {
       String promptText;
       switch (theme) {
         case 'memory':
-          promptText = 'What is a quiet memory (#$num) that still brings you a sense of grounding?';
+          promptText =
+              'What is a quiet memory (#$num) that still brings you a sense of grounding?';
           break;
         case 'friendship':
-          promptText = 'What is an unspoken gesture of loyalty from a friend you never forgot (#$num)?';
+          promptText =
+              'What is an unspoken gesture of loyalty from a friend you never forgot (#$num)?';
           break;
         case 'gratitude':
-          promptText = 'What unexpected kindness did you witness or receive recently (#$num)?';
+          promptText =
+              'What unexpected kindness did you witness or receive recently (#$num)?';
           break;
         case 'craft':
-          promptText = 'What is a technique or standard of craft you hold yourself to (#$num)?';
+          promptText =
+              'What is a technique or standard of craft you hold yourself to (#$num)?';
           break;
         case 'hope':
-          promptText = 'What future possibility gives you quiet optimism when things feel heavy (#$num)?';
+          promptText =
+              'What future possibility gives you quiet optimism when things feel heavy (#$num)?';
           break;
         case 'silence':
-          promptText = 'Where do you go when you need your thoughts to settle down (#$num)?';
+          promptText =
+              'Where do you go when you need your thoughts to settle down (#$num)?';
           break;
         case 'family':
-          promptText = 'What phrase or mannerism from your family do you catch yourself using (#$num)?';
+          promptText =
+              'What phrase or mannerism from your family do you catch yourself using (#$num)?';
           break;
         case 'curiosity':
-          promptText = 'What is something you learned this week that made you say "I did not know that" (#$num)?';
+          promptText =
+              'What is something you learned this week that made you say "I did not know that" (#$num)?';
           break;
         case 'courage':
           promptText = 'When was a time you chose honesty over ease (#$num)?';
           break;
         case 'forgiveness':
-          promptText = 'What is a mistake you made that taught you greater compassion for others (#$num)?';
+          promptText =
+              'What is a mistake you made that taught you greater compassion for others (#$num)?';
           break;
         case 'nature':
-          promptText = 'What season of the year feels most harmonious with your natural energy (#$num)?';
+          promptText =
+              'What season of the year feels most harmonious with your natural energy (#$num)?';
           break;
         case 'routines':
-          promptText = 'What small morning ritual keeps your day centered before demands arrive (#$num)?';
+          promptText =
+              'What small morning ritual keeps your day centered before demands arrive (#$num)?';
           break;
         case 'books':
-          promptText = 'What idea or passage from your reading has remained with you this month (#$num)?';
+          promptText =
+              'What idea or passage from your reading has remained with you this month (#$num)?';
           break;
         case 'patience':
-          promptText = 'What is something in your life that cannot be rushed, only tended to (#$num)?';
+          promptText =
+              'What is something in your life that cannot be rushed, only tended to (#$num)?';
           break;
         case 'boundaries':
-          promptText = 'What is a demand on your time that you have learned to decline without guilt (#$num)?';
+          promptText =
+              'What is a demand on your time that you have learned to decline without guilt (#$num)?';
           break;
         case 'simplicity':
-          promptText = 'What complication in your daily life would you love to strip away (#$num)?';
+          promptText =
+              'What complication in your daily life would you love to strip away (#$num)?';
           break;
         case 'lessons':
-          promptText = 'What hard truth about yourself was difficult to accept but made you freer (#$num)?';
+          promptText =
+              'What hard truth about yourself was difficult to accept but made you freer (#$num)?';
           break;
         case 'travel':
-          promptText = 'What street, road, or path do you look forward to walking again (#$num)?';
+          promptText =
+              'What street, road, or path do you look forward to walking again (#$num)?';
           break;
         case 'home':
-          promptText = 'What makes a room feel genuinely peaceful to you (#$num)?';
+          promptText =
+              'What makes a room feel genuinely peaceful to you (#$num)?';
           break;
         default:
-          promptText = 'What is one thing you want to remember about this current chapter of your life (#$num)?';
+          promptText =
+              'What is one thing you want to remember about this current chapter of your life (#$num)?';
       }
 
       addQ(promptText, category, [theme, 'reflection']);

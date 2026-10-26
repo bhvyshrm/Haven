@@ -7,7 +7,8 @@ class NotificationService {
   static final NotificationService instance = NotificationService._internal();
   NotificationService._internal();
 
-  final FlutterLocalNotificationsPlugin _notifications = FlutterLocalNotificationsPlugin();
+  final FlutterLocalNotificationsPlugin _notifications =
+      FlutterLocalNotificationsPlugin();
   bool _initialized = false;
 
   Future<void> init() async {
@@ -21,7 +22,9 @@ class NotificationService {
     try {
       tz.initializeTimeZones();
 
-      const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+      const androidSettings = AndroidInitializationSettings(
+        '@mipmap/ic_launcher',
+      );
       const darwinSettings = DarwinInitializationSettings(
         requestAlertPermission: false,
         requestBadgePermission: false,
@@ -49,12 +52,16 @@ class NotificationService {
     try {
       if (defaultTargetPlatform == TargetPlatform.android) {
         final androidImpl = _notifications
-            .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+            .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin
+            >();
         final granted = await androidImpl?.requestNotificationsPermission();
         return granted ?? false;
       } else if (defaultTargetPlatform == TargetPlatform.iOS) {
         final iosImpl = _notifications
-            .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>();
+            .resolvePlatformSpecificImplementation<
+              IOSFlutterLocalNotificationsPlugin
+            >();
         final granted = await iosImpl?.requestPermissions(
           alert: true,
           badge: true,
@@ -63,7 +70,9 @@ class NotificationService {
         return granted ?? false;
       } else if (defaultTargetPlatform == TargetPlatform.macOS) {
         final macosImpl = _notifications
-            .resolvePlatformSpecificImplementation<MacOSFlutterLocalNotificationsPlugin>();
+            .resolvePlatformSpecificImplementation<
+              MacOSFlutterLocalNotificationsPlugin
+            >();
         final granted = await macosImpl?.requestPermissions(
           alert: true,
           badge: true,
@@ -84,7 +93,14 @@ class NotificationService {
     try {
       await _notifications.cancel(id: 101);
       final now = tz.TZDateTime.now(tz.local);
-      var scheduledDate = tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
+      var scheduledDate = tz.TZDateTime(
+        tz.local,
+        now.year,
+        now.month,
+        now.day,
+        hour,
+        minute,
+      );
       if (scheduledDate.isBefore(now)) {
         scheduledDate = scheduledDate.add(const Duration(days: 1));
       }
