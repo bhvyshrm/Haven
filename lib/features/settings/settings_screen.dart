@@ -476,6 +476,30 @@ class SettingsScreen extends StatelessWidget {
                     Center(
                       child: Column(
                         children: [
+                          Container(
+                            width: 64.0,
+                            height: 64.0,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(16.0),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(
+                                    alpha: isDark ? 0.4 : 0.08,
+                                  ),
+                                  blurRadius: 12.0,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            clipBehavior: Clip.antiAlias,
+                            child: Image.asset(
+                              'assets/icon/app_icon.png',
+                              width: 64.0,
+                              height: 64.0,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          const SizedBox(height: 12.0),
                           Text(
                             'Haven',
                             style: HavenTypography.headlineSm(primaryTextColor),
