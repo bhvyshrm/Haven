@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -7,12 +8,23 @@ import 'haven_typography.dart';
 class HavenTheme {
   HavenTheme._();
 
+  static const _cupertinoTransitions = PageTransitionsTheme(
+    builders: {
+      TargetPlatform.android: CupertinoPageTransitionsBuilder(),
+      TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+      TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
+      TargetPlatform.windows: CupertinoPageTransitionsBuilder(),
+      TargetPlatform.linux: CupertinoPageTransitionsBuilder(),
+    },
+  );
+
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
       scaffoldBackgroundColor: HavenColors.lightCanvas,
       canvasColor: HavenColors.lightCanvas,
+      pageTransitionsTheme: _cupertinoTransitions,
       colorScheme: const ColorScheme.light(
         surface: HavenColors.lightSurface,
         onSurface: HavenColors.lightTextPrimary,
@@ -30,16 +42,16 @@ class HavenTheme {
         thickness: 1.0,
         space: 1.0,
       ),
-      appBarTheme: const AppBarTheme(
+      appBarTheme: AppBarTheme(
         backgroundColor: HavenColors.lightCanvas,
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
         systemOverlayStyle: SystemUiOverlayStyle.dark,
-        iconTheme: IconThemeData(color: HavenColors.lightTextPrimary),
+        iconTheme: const IconThemeData(color: HavenColors.lightTextPrimary),
         titleTextStyle: TextStyle(
           fontFamily: HavenTypography.fontFamily,
-          fontSize: 28,
+          fontSize: 26,
           fontWeight: FontWeight.w700,
           letterSpacing: -0.56,
           color: HavenColors.lightTextPrimary,
@@ -58,8 +70,8 @@ class HavenTheme {
         bodyLarge: HavenTypography.bodyLg(HavenColors.lightTextPrimary),
         bodyMedium: HavenTypography.bodyMd(HavenColors.lightTextPrimary),
         bodySmall: HavenTypography.bodySm(HavenColors.lightTextSecondary),
-        labelLarge: HavenTypography.labelMd(HavenColors.lightTextPrimary),
-        labelMedium: HavenTypography.labelSm(HavenColors.lightTextSecondary),
+        labelLarge: HavenTypography.labelLg(HavenColors.lightTextPrimary),
+        labelMedium: HavenTypography.labelMd(HavenColors.lightTextSecondary),
         labelSmall: HavenTypography.caption(HavenColors.lightTextSecondary),
       ),
       cardTheme: CardThemeData(
@@ -104,6 +116,7 @@ class HavenTheme {
       brightness: Brightness.dark,
       scaffoldBackgroundColor: HavenColors.darkCanvas,
       canvasColor: HavenColors.darkCanvas,
+      pageTransitionsTheme: _cupertinoTransitions,
       colorScheme: const ColorScheme.dark(
         surface: HavenColors.darkSurface,
         onSurface: HavenColors.darkTextPrimary,
@@ -121,16 +134,16 @@ class HavenTheme {
         thickness: 1.0,
         space: 1.0,
       ),
-      appBarTheme: const AppBarTheme(
+      appBarTheme: AppBarTheme(
         backgroundColor: HavenColors.darkCanvas,
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
         systemOverlayStyle: SystemUiOverlayStyle.light,
-        iconTheme: IconThemeData(color: HavenColors.darkTextPrimary),
+        iconTheme: const IconThemeData(color: HavenColors.darkTextPrimary),
         titleTextStyle: TextStyle(
           fontFamily: HavenTypography.fontFamily,
-          fontSize: 28,
+          fontSize: 26,
           fontWeight: FontWeight.w700,
           letterSpacing: -0.56,
           color: HavenColors.darkTextPrimary,
@@ -147,8 +160,8 @@ class HavenTheme {
         bodyLarge: HavenTypography.bodyLg(HavenColors.darkTextPrimary),
         bodyMedium: HavenTypography.bodyMd(HavenColors.darkTextPrimary),
         bodySmall: HavenTypography.bodySm(HavenColors.darkTextSecondary),
-        labelLarge: HavenTypography.labelMd(HavenColors.darkTextPrimary),
-        labelMedium: HavenTypography.labelSm(HavenColors.darkTextSecondary),
+        labelLarge: HavenTypography.labelLg(HavenColors.darkTextPrimary),
+        labelMedium: HavenTypography.labelMd(HavenColors.darkTextSecondary),
         labelSmall: HavenTypography.caption(HavenColors.darkTextSecondary),
       ),
       cardTheme: CardThemeData(

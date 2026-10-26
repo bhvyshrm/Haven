@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -89,50 +90,45 @@ class MainShell extends StatelessWidget {
       );
     }
 
+    // Only Home (tab index 0) displays the canonical 'haven' header wordmark.
+    // The theme toggle is removed from the header (it lives inside Settings).
+    final isHome = state.currentTabIndex == 0;
+
     return Scaffold(
       backgroundColor: canvasColor,
-      appBar: HavenHeader(
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Theme toggle button
-            IconButton(
-              icon: Icon(
-                isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
-                size: 20.0,
-                color: secondaryTextColor,
+      appBar: isHome
+          ? HavenHeader(
+              isHome: true,
+              trailing: IconButton(
+                icon: Icon(
+                  Icons.settings_outlined,
+                  size: 21.0,
+                  color: secondaryTextColor,
+                ),
+                onPressed: () {
+                  Navigator.of(context).push(
+                    CupertinoPageRoute(builder: (_) => const SettingsScreen()),
+                  );
+                },
+                tooltip: 'Settings',
               ),
-              onPressed: () => state.toggleTheme(context),
-              tooltip: isDark ? 'Switch to Light' : 'Switch to AMOLED Dark',
-            ),
-            // Settings button
-            IconButton(
-              icon: Icon(
-                Icons.settings_outlined,
-                size: 20.0,
-                color: secondaryTextColor,
-              ),
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const SettingsScreen()),
-                );
-              },
-              tooltip: 'Settings & Privacy',
-            ),
-          ],
-        ),
-      ),
+            )
+          : null,
       body: Stack(
         children: [
           HavenResponsiveContainer(
-            child: IndexedStack(
-              index: state.currentTabIndex,
-              children: const [
-                HomeScreen(),
-                JournalScreen(),
-                NotesScreen(),
-                DiscoverScreen(),
-              ],
+            child: SafeArea(
+              top: !isHome, // Non-home screens handle status-bar safe area directly
+              bottom: false,
+              child: IndexedStack(
+                index: state.currentTabIndex,
+                children: const [
+                  HomeScreen(),
+                  JournalScreen(),
+                  NotesScreen(),
+                  DiscoverScreen(),
+                ],
+              ),
             ),
           ),
           HavenBottomNav(

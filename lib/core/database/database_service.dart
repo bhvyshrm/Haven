@@ -43,6 +43,11 @@ class DatabaseService {
         sqflite.databaseFactory = ffi.databaseFactoryFfi;
       }
 
+      if (_sqliteDb != null && _sqliteDb!.isOpen) {
+        await _sqliteDb!.close();
+        _sqliteDb = null;
+      }
+
       final String dbPath;
       if (inMemory) {
         dbPath = ffi.inMemoryDatabasePath;
@@ -772,15 +777,17 @@ class DatabaseService {
         batch.insert(
           'templates',
           t.toMap(),
-          conflictAlgorithm: sqflite.ConflictAlgorithm.ignore,
+          conflictAlgorithm: sqflite.ConflictAlgorithm.replace,
         );
       }
       await batch.commit(noResult: true);
     } else {
       final list = _getWebList('templates');
-      final existingIds = list.map((m) => m['id']).toSet();
       for (final t in templates) {
-        if (!existingIds.contains(t.id)) {
+        final idx = list.indexWhere((m) => m['id'] == t.id);
+        if (idx >= 0) {
+          list[idx] = t.toMap();
+        } else {
           list.add(t.toMap());
         }
       }
@@ -1009,5 +1016,13 @@ class DatabaseService {
   Future<void> _saveWebList(String key, List<Map<String, dynamic>> list) async {
     final str = jsonEncode(list);
     await _webPrefs?.setString('db_$key', str);
+  }
+
+  Future<void> close() async {
+    if (_sqliteDb != null && _sqliteDb!.isOpen) {
+      await _sqliteDb!.close();
+      _sqliteDb = null;
+    }
+    _initialized = false;
   }
 }

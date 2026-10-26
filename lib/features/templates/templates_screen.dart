@@ -22,14 +22,18 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
 
   final List<String> _categories = [
     'All',
-    'Personal',
-    'People',
-    'College',
-    'School',
-    'Interests',
-    'Routines',
-    'Books & Movies',
-    'Ideas',
+    'About Me',
+    'Family',
+    'My People',
+    'Childhood & Memories',
+    'College & School',
+    'Feelings & Reflection',
+    'Everyday Life',
+    'Things I Love',
+    'Dreams & Future',
+    'Gratitude & Small Joys',
+    'Life Lessons',
+    'Letters I Never Sent',
   ];
 
   @override

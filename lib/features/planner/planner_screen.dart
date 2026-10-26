@@ -311,7 +311,7 @@ class _PlannerScreenState extends State<PlannerScreen>
             padding: const EdgeInsets.symmetric(vertical: 40.0),
             child: Center(
               child: Text(
-                'No tasks planned yet. Add a focus item above.',
+                'Start with one thing you would like to do this week.',
                 style: HavenTypography.bodySm(secondaryTextColor),
               ),
             ),

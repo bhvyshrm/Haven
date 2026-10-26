@@ -73,9 +73,8 @@ class HomeScreen extends StatelessWidget {
           if (recentNotes.isEmpty)
             HavenEmptyState(
               icon: Icons.edit_note_rounded,
-              title: 'Your haven is empty',
-              description:
-                  'Begin capturing your quiet thoughts, notes, and memories.',
+              title: 'No notes yet',
+              description: 'Your saved notes will appear here.',
               actionLabel: '+ Create a note',
               onAction: () async {
                 final note = await state.createNewNote();

@@ -480,13 +480,13 @@ class _TodayEntryCard extends StatelessWidget {
             ),
           ] else ...[
             Text(
-              'No entry for this day yet.',
+              'Nothing written for this day.',
               style: HavenTypography.bodyMd(primaryTextColor)
                   .copyWith(fontWeight: FontWeight.w500),
             ),
             const SizedBox(height: 4.0),
             Text(
-              'Take a quiet moment to write down what happened or what you noticed.',
+              'Take a moment to write if you feel like it.',
               style: HavenTypography.bodySm(secondaryTextColor),
             ),
             const SizedBox(height: 14.0),

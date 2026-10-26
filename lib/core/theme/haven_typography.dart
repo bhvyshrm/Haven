@@ -1,25 +1,35 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class HavenTypography {
   HavenTypography._();
 
-  static const String fontFamily = 'Inter';
+  /// Platform-aware typography:
+  /// Uses native Apple San Francisco font on iOS / macOS, and Inter fallback on Android / Web.
+  static String? get fontFamily {
+    if (kIsWeb) return 'Inter';
+    if (defaultTargetPlatform == TargetPlatform.iOS ||
+        defaultTargetPlatform == TargetPlatform.macOS) {
+      return null; // System font (San Francisco)
+    }
+    return 'Inter';
+  }
 
   static TextStyle display(Color color) => TextStyle(
     fontFamily: fontFamily,
-    fontSize: 40.0,
+    fontSize: 34.0,
     fontWeight: FontWeight.w600,
-    height: 48.0 / 40.0,
-    letterSpacing: -1.2, // -0.03em
+    height: 42.0 / 34.0,
+    letterSpacing: -0.8,
     color: color,
   );
 
   static TextStyle displayMobile(Color color) => TextStyle(
     fontFamily: fontFamily,
-    fontSize: 32.0,
+    fontSize: 30.0,
     fontWeight: FontWeight.w600,
-    height: 38.0 / 32.0,
-    letterSpacing: -0.8, // -0.025em
+    height: 38.0 / 30.0,
+    letterSpacing: -0.6,
     color: color,
   );
 
@@ -27,26 +37,26 @@ class HavenTypography {
     fontFamily: fontFamily,
     fontSize: 28.0,
     fontWeight: FontWeight.w600,
-    height: 36.0 / 28.0,
-    letterSpacing: -0.56, // -0.02em
+    height: 34.0 / 28.0,
+    letterSpacing: -0.5,
     color: color,
   );
 
   static TextStyle headlineMd(Color color) => TextStyle(
     fontFamily: fontFamily,
     fontSize: 22.0,
-    fontWeight: FontWeight.w500,
-    height: 30.0 / 22.0,
-    letterSpacing: -0.33, // -0.015em
+    fontWeight: FontWeight.w600,
+    height: 28.0 / 22.0,
+    letterSpacing: -0.3,
     color: color,
   );
 
   static TextStyle headlineSm(Color color) => TextStyle(
     fontFamily: fontFamily,
     fontSize: 18.0,
-    fontWeight: FontWeight.w500,
-    height: 26.0 / 18.0,
-    letterSpacing: -0.18, // -0.01em
+    fontWeight: FontWeight.w600,
+    height: 24.0 / 18.0,
+    letterSpacing: -0.2,
     color: color,
   );
 
@@ -55,7 +65,7 @@ class HavenTypography {
     fontSize: 17.0,
     fontWeight: FontWeight.w400,
     height: 26.0 / 17.0,
-    letterSpacing: -0.085, // -0.005em
+    letterSpacing: -0.1,
     color: color,
   );
 
@@ -63,17 +73,25 @@ class HavenTypography {
     fontFamily: fontFamily,
     fontSize: 15.0,
     fontWeight: FontWeight.w400,
-    height: 23.0 / 15.0,
-    letterSpacing: 0.0,
+    height: 22.0 / 15.0,
+    letterSpacing: -0.05,
     color: color,
   );
 
   static TextStyle bodySm(Color color) => TextStyle(
     fontFamily: fontFamily,
-    fontSize: 13.0,
+    fontSize: 13.5,
     fontWeight: FontWeight.w400,
-    height: 19.0 / 13.0,
-    letterSpacing: 0.0,
+    height: 19.0 / 13.5,
+    color: color,
+  );
+
+  static TextStyle labelLg(Color color) => TextStyle(
+    fontFamily: fontFamily,
+    fontSize: 16.0,
+    fontWeight: FontWeight.w600,
+    height: 22.0 / 16.0,
+    letterSpacing: -0.1,
     color: color,
   );
 
@@ -82,25 +100,23 @@ class HavenTypography {
     fontSize: 14.0,
     fontWeight: FontWeight.w500,
     height: 18.0 / 14.0,
-    letterSpacing: 0.14, // 0.01em
     color: color,
   );
 
   static TextStyle labelSm(Color color) => TextStyle(
     fontFamily: fontFamily,
-    fontSize: 12.0,
+    fontSize: 13.0,
     fontWeight: FontWeight.w500,
-    height: 16.0 / 12.0,
-    letterSpacing: 0.24, // 0.02em
+    height: 16.0 / 13.0,
     color: color,
   );
 
   static TextStyle caption(Color color) => TextStyle(
     fontFamily: fontFamily,
-    fontSize: 11.0,
-    fontWeight: FontWeight.w400,
-    height: 14.0 / 11.0,
-    letterSpacing: 0.33, // 0.03em
+    fontSize: 11.5,
+    fontWeight: FontWeight.w500,
+    height: 15.0 / 11.5,
+    letterSpacing: 0.2,
     color: color,
   );
 }

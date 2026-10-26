@@ -19,6 +19,7 @@ void main() {
 
   tearDownAll(() async {
     try {
+      await DatabaseService.instance.close();
       final f = File(dbName);
       if (await f.exists()) await f.delete();
     } catch (_) {}

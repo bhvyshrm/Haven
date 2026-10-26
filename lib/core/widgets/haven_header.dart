@@ -4,12 +4,18 @@ import '../theme/haven_colors.dart';
 import '../theme/haven_typography.dart';
 
 class HavenHeader extends StatelessWidget implements PreferredSizeWidget {
+  final bool isHome;
+  final String? title;
+  final Widget? leading;
   final Widget? trailing;
   final bool showBottomDivider;
   final VoidCallback? onTitleTap;
 
   const HavenHeader({
     super.key,
+    this.isHome = true,
+    this.title,
+    this.leading,
     this.trailing,
     this.showBottomDivider = true,
     this.onTitleTap,
@@ -50,21 +56,38 @@ class HavenHeader extends StatelessWidget implements PreferredSizeWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  GestureDetector(
-                    onTap: onTitleTap,
-                    behavior: HitTestBehavior.opaque,
-                    child: Text(
-                      'haven',
-                      style: TextStyle(
-                        fontFamily: HavenTypography.fontFamily,
-                        fontSize: 26.0,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: -0.8,
-                        color: primaryTextColor,
+                  if (isHome)
+                    GestureDetector(
+                      onTap: onTitleTap,
+                      behavior: HitTestBehavior.opaque,
+                      child: Text(
+                        'haven',
+                        style: TextStyle(
+                          fontFamily: HavenTypography.fontFamily,
+                          fontSize: 26.0,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.8,
+                          color: primaryTextColor,
+                        ),
                       ),
+                    )
+                  else
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (leading != null) ...[
+                          leading!,
+                          const SizedBox(width: 8.0),
+                        ],
+                        if (title != null)
+                          Text(
+                            title!,
+                            style: HavenTypography.headlineSm(primaryTextColor)
+                                .copyWith(fontWeight: FontWeight.w600),
+                          ),
+                      ],
                     ),
-                  ),
-                  ?trailing,
+                  if (trailing != null) trailing! else const SizedBox.shrink(),
                 ],
               ),
             ),

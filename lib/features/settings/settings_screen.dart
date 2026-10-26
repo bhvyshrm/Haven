@@ -1,4 +1,6 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/state/haven_state.dart';
@@ -77,61 +79,97 @@ class SettingsScreen extends StatelessWidget {
                       color: secondaryTextColor,
                     ),
                     Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16.0),
                       decoration: BoxDecoration(
                         color: surfaceColor,
                         borderRadius: BorderRadius.circular(16.0),
                         border: Border.all(color: borderColor, width: 1.0),
                       ),
-                      child: RadioGroup<ThemeMode>(
-                        groupValue: settings.themeMode,
-                        onChanged: (val) {
-                          if (val != null) state.setSpecificThemeMode(val);
-                        },
-                        child: Column(
-                          children: [
-                            RadioListTile<ThemeMode>(
-                              value: ThemeMode.system,
-                              title: Text(
-                                'System default',
-                                style: HavenTypography.bodyMd(primaryTextColor),
-                              ),
-                              subtitle: Text(
-                                'Match device settings',
-                                style: HavenTypography.caption(
-                                  secondaryTextColor,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          CupertinoSlidingSegmentedControl<ThemeMode>(
+                            groupValue: settings.themeMode,
+                            backgroundColor: isDark
+                                ? const Color(0xFF1E1E1E)
+                                : const Color(0xFFEBEBEB),
+                            thumbColor: isDark
+                                ? const Color(0xFF333333)
+                                : Colors.white,
+                            children: {
+                              ThemeMode.system: Padding(
+                                key: const ValueKey('theme_segment_system'),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8.0,
+                                ),
+                                child: Text(
+                                  'System',
+                                  style:
+                                      HavenTypography.bodySm(primaryTextColor)
+                                          .copyWith(
+                                            fontWeight:
+                                                settings.themeMode ==
+                                                    ThemeMode.system
+                                                ? FontWeight.w600
+                                                : FontWeight.w400,
+                                          ),
                                 ),
                               ),
-                            ),
-                            Divider(height: 1.0, color: borderColor),
-                            RadioListTile<ThemeMode>(
-                              value: ThemeMode.light,
-                              title: Text(
-                                'Monastic Light',
-                                style: HavenTypography.bodyMd(primaryTextColor),
-                              ),
-                              subtitle: Text(
-                                'Pure white editorial theme',
-                                style: HavenTypography.caption(
-                                  secondaryTextColor,
+                              ThemeMode.light: Padding(
+                                key: const ValueKey('theme_segment_light'),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8.0,
+                                ),
+                                child: Text(
+                                  'Light',
+                                  style:
+                                      HavenTypography.bodySm(primaryTextColor)
+                                          .copyWith(
+                                            fontWeight:
+                                                settings.themeMode ==
+                                                    ThemeMode.light
+                                                ? FontWeight.w600
+                                                : FontWeight.w400,
+                                          ),
                                 ),
                               ),
-                            ),
-                            Divider(height: 1.0, color: borderColor),
-                            RadioListTile<ThemeMode>(
-                              value: ThemeMode.dark,
-                              title: Text(
-                                'True AMOLED Dark',
-                                style: HavenTypography.bodyMd(primaryTextColor),
-                              ),
-                              subtitle: Text(
-                                'Pure black #000000 background',
-                                style: HavenTypography.caption(
-                                  secondaryTextColor,
+                              ThemeMode.dark: Padding(
+                                key: const ValueKey('theme_segment_dark'),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8.0,
+                                ),
+                                child: Text(
+                                  'Dark',
+                                  style:
+                                      HavenTypography.bodySm(
+                                        primaryTextColor,
+                                      ).copyWith(
+                                        fontWeight:
+                                            settings.themeMode == ThemeMode.dark
+                                            ? FontWeight.w600
+                                            : FontWeight.w400,
+                                      ),
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
+                            },
+                            onValueChanged: (val) {
+                              if (val != null) {
+                                HapticFeedback.selectionClick();
+                                state.setSpecificThemeMode(val);
+                              }
+                            },
+                          ),
+                          const SizedBox(height: 12.0),
+                          Text(
+                            settings.themeMode == ThemeMode.system
+                                ? 'System: Automatically adapts to your device theme.'
+                                : settings.themeMode == ThemeMode.light
+                                ? 'Light: Clean white background for bright environments.'
+                                : 'Dark: True AMOLED black (#000000) for battery saving and night reflection.',
+                            style: HavenTypography.caption(secondaryTextColor),
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(height: 24.0),
@@ -141,12 +179,13 @@ class SettingsScreen extends StatelessWidget {
                       title: 'SECURITY & PRIVACY',
                       color: secondaryTextColor,
                     ),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: surfaceColor,
+                    Material(
+                      color: surfaceColor,
+                      shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16.0),
-                        border: Border.all(color: borderColor, width: 1.0),
+                        side: BorderSide(color: borderColor, width: 1.0),
                       ),
+                      clipBehavior: Clip.antiAlias,
                       child: SwitchListTile(
                         value: settings.isAppLockEnabled,
                         onChanged: (val) async {
@@ -199,12 +238,13 @@ class SettingsScreen extends StatelessWidget {
                       title: 'LOCAL REMINDERS',
                       color: secondaryTextColor,
                     ),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: surfaceColor,
+                    Material(
+                      color: surfaceColor,
+                      shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16.0),
-                        border: Border.all(color: borderColor, width: 1.0),
+                        side: BorderSide(color: borderColor, width: 1.0),
                       ),
+                      clipBehavior: Clip.antiAlias,
                       child: Column(
                         children: [
                           SwitchListTile(
@@ -302,12 +342,13 @@ class SettingsScreen extends StatelessWidget {
                       title: 'BACKUP & RESTORE',
                       color: secondaryTextColor,
                     ),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: surfaceColor,
+                    Material(
+                      color: surfaceColor,
+                      shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16.0),
-                        border: Border.all(color: borderColor, width: 1.0),
+                        side: BorderSide(color: borderColor, width: 1.0),
                       ),
+                      clipBehavior: Clip.antiAlias,
                       child: Column(
                         children: [
                           // File Export
@@ -406,12 +447,13 @@ class SettingsScreen extends StatelessWidget {
                       title: 'DATA MANAGEMENT',
                       color: secondaryTextColor,
                     ),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: surfaceColor,
+                    Material(
+                      color: surfaceColor,
+                      shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16.0),
-                        border: Border.all(color: borderColor, width: 1.0),
+                        side: BorderSide(color: borderColor, width: 1.0),
                       ),
+                      clipBehavior: Clip.antiAlias,
                       child: ListTile(
                         leading: const Icon(
                           Icons.delete_forever_rounded,

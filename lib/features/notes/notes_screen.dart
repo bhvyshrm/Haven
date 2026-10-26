@@ -207,8 +207,8 @@ class NotesScreen extends StatelessWidget {
             else
               HavenEmptyState(
                 icon: Icons.edit_note_rounded,
-                title: 'No notes yet',
-                description: 'Your notes library is empty. Start writing your first note.',
+                title: 'Your notes will live here',
+                description: 'Create your first note.',
                 actionLabel: '+ Create a note',
                 onAction: () async {
                   final newNote = await state.createNewNote();
