@@ -1,18 +1,16 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../core/state/haven_state.dart';
 import '../core/theme/haven_colors.dart';
 import '../core/theme/haven_typography.dart';
-import '../core/widgets/haven_header.dart';
 import '../core/widgets/haven_bottom_nav.dart';
 import '../core/widgets/haven_responsive_container.dart';
+import '../core/widgets/haven_tab_switcher.dart';
 import 'home/home_screen.dart';
 import 'journal/journal_screen.dart';
 import 'notes/notes_screen.dart';
 import 'discover/discover_screen.dart';
-import 'settings/settings_screen.dart';
 
 class MainShell extends StatelessWidget {
   const MainShell({super.key});
@@ -30,6 +28,7 @@ class MainShell extends StatelessWidget {
     final canvasColor = isDark
         ? HavenColors.darkCanvas
         : HavenColors.lightCanvas;
+    final isKeyboardVisible = MediaQuery.viewInsetsOf(context).bottom > 0;
 
     // If app lock is active
     if (state.isLocked) {
@@ -90,52 +89,40 @@ class MainShell extends StatelessWidget {
       );
     }
 
-    // Only Home (tab index 0) displays the canonical 'haven' header wordmark.
-    // The theme toggle is removed from the header (it lives inside Settings).
-    final isHome = state.currentTabIndex == 0;
-
-    return Scaffold(
-      backgroundColor: canvasColor,
-      appBar: isHome
-          ? HavenHeader(
-              isHome: true,
-              trailing: IconButton(
-                icon: Icon(
-                  Icons.settings_outlined,
-                  size: 21.0,
-                  color: secondaryTextColor,
+    return PopScope(
+      canPop: state.currentTabIndex == 0,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (state.currentTabIndex != 0) {
+          state.popTab();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: canvasColor,
+        body: Stack(
+          children: [
+            HavenResponsiveContainer(
+              child: SafeArea(
+                top: true,
+                bottom: false,
+                child: HavenTabSwitcher(
+                  currentIndex: state.currentTabIndex,
+                  children: const [
+                    HomeScreen(),
+                    JournalScreen(),
+                    NotesScreen(),
+                    DiscoverScreen(),
+                  ],
                 ),
-                onPressed: () {
-                  Navigator.of(context).push(
-                    CupertinoPageRoute(builder: (_) => const SettingsScreen()),
-                  );
-                },
-                tooltip: 'Settings',
-              ),
-            )
-          : null,
-      body: Stack(
-        children: [
-          HavenResponsiveContainer(
-            child: SafeArea(
-              top: !isHome, // Non-home screens handle status-bar safe area directly
-              bottom: false,
-              child: IndexedStack(
-                index: state.currentTabIndex,
-                children: const [
-                  HomeScreen(),
-                  JournalScreen(),
-                  NotesScreen(),
-                  DiscoverScreen(),
-                ],
               ),
             ),
-          ),
-          HavenBottomNav(
-            currentIndex: state.currentTabIndex,
-            onIndexChanged: (idx) => state.setTabIndex(idx),
-          ),
-        ],
+            if (!isKeyboardVisible)
+              HavenBottomNav(
+                currentIndex: state.currentTabIndex,
+                onIndexChanged: (idx) => state.setTabIndex(idx),
+              ),
+          ],
+        ),
       ),
     );
   }
