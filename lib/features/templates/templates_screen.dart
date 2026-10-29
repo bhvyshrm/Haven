@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -307,7 +308,9 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
     final newNote = await state.useTemplate(tpl);
     if (context.mounted) {
       Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => NoteEditorScreen(noteId: newNote.id)),
+        CupertinoPageRoute(
+          builder: (_) => NoteEditorScreen(noteId: newNote.id),
+        ),
       );
     }
   }

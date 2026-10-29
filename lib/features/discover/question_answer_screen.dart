@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -239,7 +240,7 @@ class _QuestionAnswerScreenState extends State<QuestionAnswerScreen> {
                             if (context.mounted &&
                                 state.randomQuestion != null) {
                               Navigator.of(context).pushReplacement(
-                                MaterialPageRoute(
+                                CupertinoPageRoute(
                                   builder: (_) => QuestionAnswerScreen(
                                     question: state.randomQuestion!,
                                     source: 'random',

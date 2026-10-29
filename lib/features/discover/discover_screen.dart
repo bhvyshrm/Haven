@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -41,6 +42,7 @@ class DiscoverScreen extends StatelessWidget {
       color: primaryTextColor,
       backgroundColor: surfaceColor,
       child: ListView(
+        key: const PageStorageKey('discover_scroll_list'),
         padding: const EdgeInsets.only(
           left: 20.0,
           right: 20.0,
@@ -93,7 +95,7 @@ class DiscoverScreen extends StatelessWidget {
                       onPressed: () {
                         if (dailyQuestion != null) {
                           Navigator.of(context).push(
-                            MaterialPageRoute(
+                            CupertinoPageRoute(
                               builder: (_) => QuestionAnswerScreen(
                                 question: dailyQuestion,
                                 source: 'daily',
@@ -122,7 +124,7 @@ class DiscoverScreen extends StatelessWidget {
                     TextButton(
                       onPressed: () {
                         Navigator.of(context).push(
-                          MaterialPageRoute(
+                          CupertinoPageRoute(
                             builder: (_) => const PreviousAnswersScreen(),
                           ),
                         );
@@ -165,7 +167,7 @@ class DiscoverScreen extends StatelessWidget {
                 icon: Icons.menu_book_rounded,
                 onTap: () {
                   Navigator.of(context).push(
-                    MaterialPageRoute(
+                    CupertinoPageRoute(
                       builder: (_) => const CategoryPromptsScreen(
                         category: 'My Story',
                         description: 'Quiet prompts about formative chapters, memories, and turning points.',
@@ -180,7 +182,7 @@ class DiscoverScreen extends StatelessWidget {
                 icon: Icons.group_rounded,
                 onTap: () {
                   Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const PeopleScreen()),
+                    CupertinoPageRoute(builder: (_) => const PeopleScreen()),
                   );
                 },
               ),
@@ -190,7 +192,7 @@ class DiscoverScreen extends StatelessWidget {
                 icon: Icons.favorite_border_rounded,
                 onTap: () {
                   Navigator.of(context).push(
-                    MaterialPageRoute(
+                    CupertinoPageRoute(
                       builder: (_) => const CategoryPromptsScreen(
                         category: 'My Interests',
                         description: 'Questions exploring your crafts, curiosities, books, and deep focus.',
@@ -205,7 +207,7 @@ class DiscoverScreen extends StatelessWidget {
                 icon: Icons.north_east_rounded,
                 onTap: () {
                   Navigator.of(context).push(
-                    MaterialPageRoute(
+                    CupertinoPageRoute(
                       builder: (_) => const CategoryPromptsScreen(
                         category: 'My Future',
                         description: 'Reflections on seasonal direction, horizons, boundaries, and growth.',
@@ -230,7 +232,7 @@ class DiscoverScreen extends StatelessWidget {
               TextButton(
                 onPressed: () {
                   Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const TemplatesScreen()),
+                    CupertinoPageRoute(builder: (_) => const TemplatesScreen()),
                   );
                 },
                 child: Text(
@@ -260,7 +262,7 @@ class DiscoverScreen extends StatelessWidget {
                     final newNote = await state.useTemplate(tpl);
                     if (context.mounted) {
                       Navigator.of(context).push(
-                        MaterialPageRoute(
+                        CupertinoPageRoute(
                           builder: (_) => NoteEditorScreen(noteId: newNote.id),
                         ),
                       );
@@ -280,7 +282,7 @@ class DiscoverScreen extends StatelessWidget {
                 await state.nextRandomQuestion();
                 if (context.mounted && state.randomQuestion != null) {
                   Navigator.of(context).push(
-                    MaterialPageRoute(
+                    CupertinoPageRoute(
                       builder: (_) => QuestionAnswerScreen(
                         question: state.randomQuestion!,
                         source: 'random',

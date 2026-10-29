@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -123,7 +124,7 @@ class _CategoryPromptsScreenState extends State<CategoryPromptsScreen> {
                             child: InkWell(
                               onTap: () {
                                 Navigator.of(context).push(
-                                  MaterialPageRoute(
+                                  CupertinoPageRoute(
                                     builder: (_) => QuestionAnswerScreen(
                                       question: q,
                                       source: 'category',
