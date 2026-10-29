@@ -23,6 +23,8 @@ class HavenState extends ChangeNotifier {
   // Navigation
   int _currentTabIndex = 0;
   int get currentTabIndex => _currentTabIndex;
+  final List<int> _tabHistory = [0];
+  List<int> get tabHistory => List.unmodifiable(_tabHistory);
 
   // App Lock
   bool _isLocked = false;
@@ -115,9 +117,27 @@ class HavenState extends ChangeNotifier {
 
   void setTabIndex(int index) {
     if (_currentTabIndex != index) {
+      _tabHistory.removeWhere((i) => i == index);
+      _tabHistory.add(index);
       _currentTabIndex = index;
       notifyListeners();
     }
+  }
+
+  bool popTab() {
+    if (_tabHistory.length > 1) {
+      _tabHistory.removeLast();
+      _currentTabIndex = _tabHistory.last;
+      notifyListeners();
+      return true;
+    } else if (_currentTabIndex != 0) {
+      _currentTabIndex = 0;
+      _tabHistory.clear();
+      _tabHistory.add(0);
+      notifyListeners();
+      return true;
+    }
+    return false;
   }
 
   Future<void> toggleTheme(BuildContext context) async {
