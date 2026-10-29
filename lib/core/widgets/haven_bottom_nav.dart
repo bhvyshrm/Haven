@@ -16,10 +16,19 @@ class HavenBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Respect keyboard visibility: hide the floating navigation bar when typing
+    // so it doesn't obstruct inputs, notes lists, or search results.
+    final keyboardVisible =
+        MediaQuery.viewInsetsOf(context).bottom > 0 ||
+        View.of(context).viewInsets.bottom > 0;
+    if (keyboardVisible) {
+      return const SizedBox.shrink();
+    }
+
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final navBg = isDark
-        ? HavenColors.darkSurface.withValues(alpha: 0.92)
-        : HavenColors.lightCanvas.withValues(alpha: 0.92);
+        ? HavenColors.darkSurface.withValues(alpha: 0.94)
+        : HavenColors.lightCanvas.withValues(alpha: 0.94);
     final borderColor = isDark
         ? HavenColors.darkBorder
         : HavenColors.lightBorder;
@@ -44,8 +53,8 @@ class HavenBottomNav extends StatelessWidget {
                 width: double.infinity,
                 constraints: const BoxConstraints(maxWidth: 340.0),
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 16.0,
-                  vertical: 8.0,
+                  horizontal: 14.0,
+                  vertical: 6.0,
                 ),
                 decoration: BoxDecoration(
                   color: navBg,
@@ -54,7 +63,7 @@ class HavenBottomNav extends StatelessWidget {
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withValues(
-                        alpha: isDark ? 0.35 : 0.06,
+                        alpha: isDark ? 0.40 : 0.06,
                       ),
                       blurRadius: 16.0,
                       offset: const Offset(0, 4),
@@ -144,14 +153,26 @@ class _NavItem extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(9999.0),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
+          padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 8.0),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 26.0, color: color),
-              const SizedBox(height: 2.0),
-              Container(
-                width: 4.0,
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                transitionBuilder: (child, anim) =>
+                    FadeTransition(opacity: anim, child: child),
+                child: Icon(
+                  icon,
+                  key: ValueKey<IconData>(icon),
+                  size: 24.0,
+                  color: color,
+                ),
+              ),
+              const SizedBox(height: 3.0),
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeOutCubic,
+                width: isSelected ? 4.0 : 0.0,
                 height: 4.0,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
