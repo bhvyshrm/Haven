@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -40,6 +41,7 @@ class JournalScreen extends StatelessWidget {
       color: primaryTextColor,
       backgroundColor: surfaceColor,
       child: ListView(
+        key: const PageStorageKey('journal_scroll_list'),
         padding: const EdgeInsets.only(
           left: 20.0,
           right: 20.0,
@@ -60,7 +62,7 @@ class JournalScreen extends StatelessWidget {
               TextButton.icon(
                 onPressed: () {
                   Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const PlannerScreen()),
+                    CupertinoPageRoute(builder: (_) => const PlannerScreen()),
                   );
                 },
                 icon: Icon(
@@ -166,7 +168,7 @@ class JournalScreen extends StatelessWidget {
               final entry = await state.getOrCreateEntryForDate(selectedDate);
               if (context.mounted) {
                 Navigator.of(context).push(
-                  MaterialPageRoute(
+                  CupertinoPageRoute(
                     builder: (_) => JournalEditorScreen(entryId: entry.id),
                   ),
                 );
@@ -201,7 +203,7 @@ class JournalScreen extends StatelessWidget {
                     entry: entry,
                     onTap: () {
                       Navigator.of(context).push(
-                        MaterialPageRoute(
+                        CupertinoPageRoute(
                           builder: (_) =>
                               JournalEditorScreen(entryId: entry.id),
                         ),
