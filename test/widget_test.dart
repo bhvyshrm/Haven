@@ -10,6 +10,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:haven/main.dart';
 import 'package:haven/core/state/haven_state.dart';
 import 'package:haven/core/database/database_service.dart';
+import 'package:haven/core/widgets/haven_header.dart';
 
 void main() {
   const testDbName = 'test_widget_haven.db';
@@ -171,4 +172,150 @@ void main() {
       expect(find.text('haven'), findsOneWidget);
     },
   );
+
+  testWidgets(
+    'HavenHeader renders without any divider line beneath haven title',
+    (WidgetTester tester) async {
+      final havenState = HavenState();
+      await tester.runAsync(() async {
+        await havenState.init();
+      });
+
+      await tester.pumpWidget(createHavenAppWidget(havenState));
+      await tester.pumpAndSettle();
+
+      // Find HavenHeader on Home
+      final headerFinder = find.byType(HavenHeader);
+      expect(headerFinder, findsOneWidget);
+      final HavenHeader headerWidget = tester.widget(headerFinder);
+      expect(headerWidget.showBottomDivider, isFalse);
+
+      // Verify no bottom border exists in HavenHeader
+      final containerFinder = find.descendant(
+        of: headerFinder,
+        matching: find.byType(Container),
+      );
+      bool hasBottomBorder = false;
+      for (final element in containerFinder.evaluate()) {
+        final container = element.widget as Container;
+        final decoration = container.decoration;
+        if (decoration is BoxDecoration && decoration.border != null) {
+          if (decoration.border!.bottom != BorderSide.none) {
+            hasBottomBorder = true;
+          }
+        }
+      }
+      expect(hasBottomBorder, isFalse);
+    },
+  );
+
+  testWidgets(
+    'Smooth tab transitions preserve search text and navigation state across tabs',
+    (WidgetTester tester) async {
+      final havenState = HavenState();
+      await tester.runAsync(() async {
+        await havenState.init();
+      });
+
+      await tester.pumpWidget(createHavenAppWidget(havenState));
+      await tester.pumpAndSettle();
+
+      // 1. Switch to Notes
+      await tester.tap(find.bySemanticsLabel('Notes'));
+      await tester.pumpAndSettle();
+      expect(havenState.currentTabIndex, 2);
+
+      // 2. Enter search text into Notes search field
+      final searchField = find.byType(TextField);
+      expect(searchField, findsOneWidget);
+      await tester.enterText(searchField, 'serenity');
+      await tester.pumpAndSettle();
+      expect(havenState.searchQuery, 'serenity');
+
+      // 3. Switch to Journal
+      await tester.tap(find.bySemanticsLabel('Journal'));
+      await tester.pumpAndSettle();
+      expect(havenState.currentTabIndex, 1);
+      expect(find.text("TODAY'S ENTRY"), findsOneWidget);
+
+      // 4. Switch back to Notes -> search query preserved!
+      await tester.tap(find.bySemanticsLabel('Notes'));
+      await tester.pumpAndSettle();
+      expect(havenState.currentTabIndex, 2);
+      expect(havenState.searchQuery, 'serenity');
+      expect(find.text('serenity'), findsOneWidget);
+
+      // 5. Switch to Discover
+      await tester.tap(find.bySemanticsLabel('Discover'));
+      await tester.pumpAndSettle();
+      expect(havenState.currentTabIndex, 3);
+      expect(find.text('DAILY REFLECTION'), findsOneWidget);
+
+      // 6. Return to Home
+      await tester.tap(find.bySemanticsLabel('Home'));
+      await tester.pumpAndSettle();
+      expect(havenState.currentTabIndex, 0);
+      expect(find.text('Recently saved'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'Android PopScope navigation manages tab history and back popping',
+    (WidgetTester tester) async {
+      final havenState = HavenState();
+      await tester.runAsync(() async {
+        await havenState.init();
+      });
+
+      await tester.pumpWidget(createHavenAppWidget(havenState));
+      await tester.pumpAndSettle();
+
+      // Start on Home
+      expect(havenState.currentTabIndex, 0);
+
+      // Navigate Home (0) -> Journal (1) -> Notes (2)
+      await tester.tap(find.bySemanticsLabel('Journal'));
+      await tester.pumpAndSettle();
+      expect(havenState.currentTabIndex, 1);
+
+      await tester.tap(find.bySemanticsLabel('Notes'));
+      await tester.pumpAndSettle();
+      expect(havenState.currentTabIndex, 2);
+
+      // Pop tab history
+      final didPop1 = havenState.popTab();
+      expect(didPop1, isTrue);
+      expect(havenState.currentTabIndex, 1);
+      await tester.pumpAndSettle();
+
+      // Pop tab history back to Home
+      final didPop2 = havenState.popTab();
+      expect(didPop2, isTrue);
+      expect(havenState.currentTabIndex, 0);
+      await tester.pumpAndSettle();
+
+      // Popping from Home returns false (allowing app exit / root pop)
+      final didPop3 = havenState.popTab();
+      expect(didPop3, isFalse);
+      expect(havenState.currentTabIndex, 0);
+    },
+  );
+
+  testWidgets('Bottom nav bar hides when keyboard is visible', (
+    WidgetTester tester,
+  ) async {
+    final havenState = HavenState();
+    await tester.runAsync(() async {
+      await havenState.init();
+    });
+
+    tester.view.viewInsets = const FakeViewPadding(bottom: 300);
+    addTearDown(() => tester.view.resetViewInsets());
+
+    await tester.pumpWidget(createHavenAppWidget(havenState));
+    await tester.pumpAndSettle();
+
+    // With keyboard open, HavenBottomNav content should be empty / hidden
+    expect(find.bySemanticsLabel('Journal'), findsNothing);
+  });
 }
