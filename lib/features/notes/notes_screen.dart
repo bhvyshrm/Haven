@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -11,12 +12,39 @@ import '../../core/widgets/haven_pill_chip.dart';
 import '../templates/templates_screen.dart';
 import 'note_editor_screen.dart';
 
-class NotesScreen extends StatelessWidget {
+class NotesScreen extends StatefulWidget {
   const NotesScreen({super.key});
+
+  @override
+  State<NotesScreen> createState() => _NotesScreenState();
+}
+
+class _NotesScreenState extends State<NotesScreen> {
+  late final TextEditingController _searchController;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController(
+      text: context.read<HavenState>().searchQuery,
+    );
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final state = context.watch<HavenState>();
+    if (_searchController.text != state.searchQuery) {
+      _searchController.value = TextEditingValue(
+        text: state.searchQuery,
+        selection: TextSelection.collapsed(offset: state.searchQuery.length),
+      );
+    }
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primaryTextColor = isDark
         ? HavenColors.darkTextPrimary
@@ -42,6 +70,7 @@ class NotesScreen extends StatelessWidget {
       color: primaryTextColor,
       backgroundColor: surfaceColor,
       child: ListView(
+        key: const PageStorageKey('notes_scroll_list'),
         padding: const EdgeInsets.only(
           left: 20.0,
           right: 20.0,
@@ -62,7 +91,7 @@ class NotesScreen extends StatelessWidget {
               TextButton(
                 onPressed: () {
                   Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const TemplatesScreen()),
+                    CupertinoPageRoute(builder: (_) => const TemplatesScreen()),
                   );
                 },
                 style: TextButton.styleFrom(
@@ -94,6 +123,7 @@ class NotesScreen extends StatelessWidget {
                     border: Border.all(color: borderColor, width: 1.0),
                   ),
                   child: TextField(
+                    controller: _searchController,
                     onChanged: (val) => state.setSearchQuery(val),
                     style: HavenTypography.bodySm(primaryTextColor),
                     cursorColor: primaryTextColor,
@@ -128,7 +158,7 @@ class NotesScreen extends StatelessWidget {
                   );
                   if (context.mounted) {
                     Navigator.of(context).push(
-                      MaterialPageRoute(
+                      CupertinoPageRoute(
                         builder: (_) => NoteEditorScreen(noteId: newNote.id),
                       ),
                     );
@@ -197,7 +227,7 @@ class NotesScreen extends StatelessWidget {
                   );
                   if (context.mounted) {
                     Navigator.of(context).push(
-                      MaterialPageRoute(
+                      CupertinoPageRoute(
                         builder: (_) => NoteEditorScreen(noteId: newNote.id),
                       ),
                     );
@@ -214,7 +244,7 @@ class NotesScreen extends StatelessWidget {
                   final newNote = await state.createNewNote();
                   if (context.mounted) {
                     Navigator.of(context).push(
-                      MaterialPageRoute(
+                      CupertinoPageRoute(
                         builder: (_) => NoteEditorScreen(noteId: newNote.id),
                       ),
                     );
@@ -238,7 +268,7 @@ class NotesScreen extends StatelessWidget {
                   note: note,
                   onTap: () {
                     Navigator.of(context).push(
-                      MaterialPageRoute(
+                      CupertinoPageRoute(
                         builder: (_) => NoteEditorScreen(noteId: note.id),
                       ),
                     );

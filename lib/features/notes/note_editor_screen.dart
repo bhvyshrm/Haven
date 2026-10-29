@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -203,7 +204,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
             );
             if (context.mounted) {
               Navigator.of(context).pushReplacement(
-                MaterialPageRoute(
+                CupertinoPageRoute(
                   builder: (_) => NoteEditorScreen(noteId: copy.id),
                 ),
               );
