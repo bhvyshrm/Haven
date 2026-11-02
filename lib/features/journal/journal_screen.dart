@@ -32,7 +32,7 @@ class JournalScreen extends StatelessWidget {
 
     final selectedDate = state.selectedDate;
     final selectedEntry = state.entryForSelectedDate;
-    final previousEntries = state.journalEntries
+    final otherEntries = state.journalEntries
         .where((e) => e.date != state.selectedDateFormatted)
         .toList();
 
@@ -85,82 +85,17 @@ class JournalScreen extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 12.0),
+          const SizedBox(height: 14.0),
 
-          // 2. Date Navigation Bar
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
-            decoration: BoxDecoration(
-              border: Border(
-                bottom: BorderSide(color: borderColor, width: 1.0),
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      Icons.calendar_today_rounded,
-                      size: 18.0,
-                      color: secondaryTextColor,
-                    ),
-                    const SizedBox(width: 8.0),
-                    Text(
-                      DateFormat('EEEE, d MMMM').format(selectedDate),
-                      style: HavenTypography.labelMd(primaryTextColor)
-                          .copyWith(fontWeight: FontWeight.w600),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.chevron_left_rounded, size: 20.0),
-                      color: secondaryTextColor,
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(
-                        minWidth: 32.0,
-                        minHeight: 32.0,
-                      ),
-                      onPressed: () {
-                        state.setSelectedDate(
-                          selectedDate.subtract(const Duration(days: 1)),
-                        );
-                      },
-                      tooltip: 'Previous day',
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.chevron_right_rounded, size: 20.0),
-                      color: secondaryTextColor,
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(
-                        minWidth: 32.0,
-                        minHeight: 32.0,
-                      ),
-                      onPressed: () {
-                        state.setSelectedDate(
-                          selectedDate.add(const Duration(days: 1)),
-                        );
-                      },
-                      tooltip: 'Next day',
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16.0),
-
-          // 3. This Week Strip (M T W T F S S)
-          _WeekStrip(
+          // 2. Compact iOS-Inspired Monthly Calendar
+          _CompactMonthCalendar(
             selectedDate: selectedDate,
             journalEntries: state.journalEntries,
             onSelectDate: (d) => state.setSelectedDate(d),
           ),
           const SizedBox(height: 16.0),
 
-          // 4. Selected Day's Entry Card
+          // 3. Selected Day's Entry Card
           _TodayEntryCard(
             selectedDate: selectedDate,
             entry: selectedEntry,
@@ -177,10 +112,10 @@ class JournalScreen extends StatelessWidget {
           ),
           const SizedBox(height: 24.0),
 
-          // 5. Previous Entries List
-          if (previousEntries.isNotEmpty) ...[
+          // 4. Other Entries List
+          if (otherEntries.isNotEmpty) ...[
             Text(
-              'Previous entries',
+              'Other entries',
               style: HavenTypography.bodyMd(primaryTextColor)
                   .copyWith(fontWeight: FontWeight.w600),
             ),
@@ -194,11 +129,11 @@ class JournalScreen extends StatelessWidget {
               child: ListView.separated(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                itemCount: previousEntries.length,
+                itemCount: otherEntries.length,
                 separatorBuilder: (context, index) =>
                     Divider(height: 1.0, color: borderColor),
                 itemBuilder: (context, index) {
-                  final entry = previousEntries[index];
+                  final entry = otherEntries[index];
                   return _PreviousEntryTile(
                     entry: entry,
                     onTap: () {
@@ -220,16 +155,74 @@ class JournalScreen extends StatelessWidget {
   }
 }
 
-class _WeekStrip extends StatelessWidget {
+class _CompactMonthCalendar extends StatefulWidget {
   final DateTime selectedDate;
   final List<JournalEntry> journalEntries;
   final ValueChanged<DateTime> onSelectDate;
 
-  const _WeekStrip({
+  const _CompactMonthCalendar({
     required this.selectedDate,
     required this.journalEntries,
     required this.onSelectDate,
   });
+
+  @override
+  State<_CompactMonthCalendar> createState() => _CompactMonthCalendarState();
+}
+
+class _CompactMonthCalendarState extends State<_CompactMonthCalendar> {
+  late DateTime _displayedMonth;
+
+  @override
+  void initState() {
+    super.initState();
+    _displayedMonth = DateTime(
+      widget.selectedDate.year,
+      widget.selectedDate.month,
+      1,
+    );
+  }
+
+  @override
+  void didUpdateWidget(covariant _CompactMonthCalendar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.selectedDate.year != widget.selectedDate.year ||
+        oldWidget.selectedDate.month != widget.selectedDate.month) {
+      _displayedMonth = DateTime(
+        widget.selectedDate.year,
+        widget.selectedDate.month,
+        1,
+      );
+    }
+  }
+
+  void _previousMonth() {
+    setState(() {
+      _displayedMonth = DateTime(
+        _displayedMonth.year,
+        _displayedMonth.month - 1,
+        1,
+      );
+    });
+  }
+
+  void _nextMonth() {
+    setState(() {
+      _displayedMonth = DateTime(
+        _displayedMonth.year,
+        _displayedMonth.month + 1,
+        1,
+      );
+    });
+  }
+
+  void _goToToday() {
+    final now = DateTime.now();
+    setState(() {
+      _displayedMonth = DateTime(now.year, now.month, 1);
+    });
+    widget.onSelectDate(now);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -240,140 +233,289 @@ class _WeekStrip extends StatelessWidget {
     final borderColor = isDark
         ? HavenColors.darkBorder
         : HavenColors.lightBorder;
+    final primaryTextColor = isDark
+        ? HavenColors.darkTextPrimary
+        : HavenColors.lightTextPrimary;
     final secondaryTextColor = isDark
         ? HavenColors.darkTextSecondary
         : HavenColors.lightTextSecondary;
 
-    // Calculate Monday of the selected date's week
-    final daysToMonday = selectedDate.weekday - DateTime.monday;
-    final monday = selectedDate.subtract(Duration(days: daysToMonday));
-    final weekDays = List.generate(7, (i) => monday.add(Duration(days: i)));
+    final now = DateTime.now();
+    final isCurrentMonth =
+        _displayedMonth.year == now.year && _displayedMonth.month == now.month;
 
-    final dayInitials = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+    // Set of entry dates for fast lookup
+    final entryDates = <String>{};
+    for (final e in widget.journalEntries) {
+      if (e.title.trim().isNotEmpty || e.body.trim().isNotEmpty) {
+        entryDates.add(e.date);
+      }
+    }
+
+    // Days in current displayed month
+    final firstDayOfMonth = DateTime(
+      _displayedMonth.year,
+      _displayedMonth.month,
+      1,
+    );
+    final daysInMonth = DateTime(
+      _displayedMonth.year,
+      _displayedMonth.month + 1,
+      0,
+    ).day;
+
+    // Monday is 1, Sunday is 7. Offset = firstDayOfMonth.weekday - 1
+    final leadingOffset = firstDayOfMonth.weekday - DateTime.monday;
+    final prevMonthLastDay = DateTime(
+      _displayedMonth.year,
+      _displayedMonth.month,
+      0,
+    ).day;
+
+    final List<DateTime> calendarDays = [];
+
+    // Leading days from previous month
+    for (int i = leadingOffset - 1; i >= 0; i--) {
+      calendarDays.add(
+        DateTime(
+          _displayedMonth.year,
+          _displayedMonth.month - 1,
+          prevMonthLastDay - i,
+        ),
+      );
+    }
+
+    // Days in current month
+    for (int day = 1; day <= daysInMonth; day++) {
+      calendarDays.add(
+        DateTime(_displayedMonth.year, _displayedMonth.month, day),
+      );
+    }
+
+    // Trailing days from next month to complete the last row
+    final trailingCount = (7 - (calendarDays.length % 7)) % 7;
+    for (int day = 1; day <= trailingCount; day++) {
+      calendarDays.add(
+        DateTime(_displayedMonth.year, _displayedMonth.month + 1, day),
+      );
+    }
+
+    const dayLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
     return Container(
-      padding: const EdgeInsets.all(14.0),
+      padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 12.0),
       decoration: BoxDecoration(
         color: surfaceColor,
         borderRadius: BorderRadius.circular(16.0),
         border: Border.all(color: borderColor, width: 1.0),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
-            children: [
-              Icon(
-                Icons.event_available_rounded,
-                size: 15.0,
-                color: secondaryTextColor,
-              ),
-              const SizedBox(width: 6.0),
-              Text(
-                'This week',
-                style: HavenTypography.caption(secondaryTextColor)
-                    .copyWith(fontWeight: FontWeight.w600),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10.0),
+          // Month Header: e.g. "November 2026" with controls
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: List.generate(7, (i) {
-              final day = weekDays[i];
-              final isSelected =
-                  day.year == selectedDate.year &&
-                  day.month == selectedDate.month &&
-                  day.day == selectedDate.day;
-
-              final dateStr = DateFormat('yyyy-MM-dd').format(day);
-              final hasEntry = journalEntries.any(
-                (e) =>
-                    e.date == dateStr &&
-                    (e.title.isNotEmpty || e.body.isNotEmpty),
-              );
-
-              final activeBg = isDark ? Colors.white : const Color(0xFF171717);
-              final activeText = isDark
-                  ? const Color(0xFF171717)
-                  : Colors.white;
-
-              return Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 2.0),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: () => onSelectDate(day),
-                      borderRadius: BorderRadius.circular(12.0),
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    DateFormat('MMMM yyyy').format(_displayedMonth),
+                    style: HavenTypography.labelLg(primaryTextColor).copyWith(
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: -0.2,
+                    ),
+                  ),
+                  if (!isCurrentMonth) ...[
+                    const SizedBox(width: 8.0),
+                    GestureDetector(
+                      onTap: _goToToday,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0),
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? activeBg
-                              : (isDark
-                                    ? HavenColors.darkCanvas
-                                    : HavenColors.lightCanvas),
-                          borderRadius: BorderRadius.circular(12.0),
-                          border: Border.all(
-                            color: isSelected ? activeBg : borderColor,
-                            width: 1.0,
-                          ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6.0,
+                          vertical: 2.0,
                         ),
-                        child: Column(
-                          children: [
-                            Text(
-                              dayInitials[i],
-                              style: TextStyle(
-                                fontSize: 11.0,
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? const Color(0xFF242424)
+                              : const Color(0xFFEEEEEE),
+                          borderRadius: BorderRadius.circular(6.0),
+                        ),
+                        child: Text(
+                          'Today',
+                          style: HavenTypography.caption(primaryTextColor)
+                              .copyWith(
                                 fontWeight: FontWeight.w500,
-                                color: isSelected
-                                    ? activeText
-                                    : secondaryTextColor,
+                                fontSize: 10.5,
                               ),
-                            ),
-                            const SizedBox(height: 4.0),
-                            Text(
-                              day.day.toString(),
-                              style: TextStyle(
-                                fontSize: 13.0,
-                                fontWeight: FontWeight.w700,
-                                color: isSelected
-                                    ? activeText
-                                    : (isDark
-                                          ? HavenColors.darkTextPrimary
-                                          : HavenColors.lightTextPrimary),
-                              ),
-                            ),
-                            const SizedBox(height: 4.0),
-                            if (isSelected)
-                              Container(
-                                width: 5.0,
-                                height: 5.0,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: activeText,
-                                ),
-                              )
-                            else if (hasEntry)
-                              Icon(
-                                Icons.check,
-                                size: 12.0,
-                                color: isDark
-                                    ? Colors.white
-                                    : const Color(0xFF171717),
-                              )
-                            else
-                              const SizedBox(height: 12.0),
-                          ],
                         ),
                       ),
                     ),
+                  ],
+                ],
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.chevron_left_rounded, size: 20.0),
+                    color: secondaryTextColor,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(
+                      minWidth: 28.0,
+                      minHeight: 28.0,
+                    ),
+                    onPressed: _previousMonth,
+                    tooltip: 'Previous month',
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.chevron_right_rounded, size: 20.0),
+                    color: secondaryTextColor,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(
+                      minWidth: 28.0,
+                      minHeight: 28.0,
+                    ),
+                    onPressed: _nextMonth,
+                    tooltip: 'Next month',
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 8.0),
+
+          // Day of week row (M T W T F S S)
+          Row(
+            children: List.generate(7, (i) {
+              return Expanded(
+                child: Center(
+                  child: Text(
+                    dayLabels[i],
+                    style: HavenTypography.caption(secondaryTextColor)
+                        .copyWith(fontWeight: FontWeight.w500, fontSize: 11.0),
                   ),
                 ),
               );
             }),
           ),
+          const SizedBox(height: 6.0),
+
+          // Grid of days
+          ...List.generate((calendarDays.length / 7).ceil(), (rowIndex) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 2.0),
+              child: Row(
+                children: List.generate(7, (colIndex) {
+                  final dayIndex = rowIndex * 7 + colIndex;
+                  final day = calendarDays[dayIndex];
+
+                  final isCurrentMonthDay = day.month == _displayedMonth.month;
+                  final isSelected =
+                      day.year == widget.selectedDate.year &&
+                      day.month == widget.selectedDate.month &&
+                      day.day == widget.selectedDate.day;
+                  final isToday =
+                      day.year == now.year &&
+                      day.month == now.month &&
+                      day.day == now.day;
+
+                  final dateStr = DateFormat('yyyy-MM-dd').format(day);
+                  final hasEntry = entryDates.contains(dateStr);
+
+                  // Colors & styling
+                  final Color cellText;
+                  final Color cellBg;
+                  final BoxBorder? cellBorder;
+
+                  if (isSelected) {
+                    cellBg = isDark ? Colors.white : const Color(0xFF171717);
+                    cellText = isDark ? const Color(0xFF171717) : Colors.white;
+                    cellBorder = null;
+                  } else if (isToday) {
+                    cellBg = Colors.transparent;
+                    cellText = primaryTextColor;
+                    cellBorder = Border.all(
+                      color: isDark
+                          ? const Color(0xFF555555)
+                          : const Color(0xFFB0B0B0),
+                      width: 1.0,
+                    );
+                  } else {
+                    cellBg = Colors.transparent;
+                    cellText = isCurrentMonthDay
+                        ? primaryTextColor
+                        : secondaryTextColor.withValues(alpha: 0.35);
+                    cellBorder = null;
+                  }
+
+                  return Expanded(
+                    child: Center(
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () {
+                            if (day.month != _displayedMonth.month) {
+                              setState(() {
+                                _displayedMonth = DateTime(
+                                  day.year,
+                                  day.month,
+                                  1,
+                                );
+                              });
+                            }
+                            widget.onSelectDate(day);
+                          },
+                          borderRadius: BorderRadius.circular(16.0),
+                          child: Container(
+                            width: 32.0,
+                            height: 32.0,
+                            decoration: BoxDecoration(
+                              color: cellBg,
+                              shape: BoxShape.circle,
+                              border: cellBorder,
+                            ),
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                Text(
+                                  '${day.day}',
+                                  style: TextStyle(
+                                    fontSize: 12.5,
+                                    fontWeight: isSelected || isToday
+                                        ? FontWeight.w600
+                                        : FontWeight.w400,
+                                    color: cellText,
+                                  ),
+                                ),
+                                if (hasEntry)
+                                  Positioned(
+                                    bottom: 3.0,
+                                    child: Container(
+                                      width: 3.5,
+                                      height: 3.5,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: isSelected
+                                            ? cellText
+                                            : (isDark
+                                                  ? const Color(0xFFE0E0E0)
+                                                  : const Color(0xFF202020)),
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }),
+              ),
+            );
+          }),
         ],
       ),
     );
@@ -410,6 +552,12 @@ class _TodayEntryCard extends StatelessWidget {
         ? HavenColors.darkCanvas
         : HavenColors.lightCanvas;
 
+    final now = DateTime.now();
+    final isToday =
+        selectedDate.year == now.year &&
+        selectedDate.month == now.month &&
+        selectedDate.day == now.day;
+
     final hasContent =
         entry != null &&
         (entry!.title.trim().isNotEmpty || entry!.body.trim().isNotEmpty);
@@ -428,7 +576,9 @@ class _TodayEntryCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'TODAY\'S ENTRY',
+                isToday
+                    ? 'TODAY\'S ENTRY'
+                    : 'ENTRY FOR ${DateFormat('d MMMM').format(selectedDate).toUpperCase()}',
                 style: HavenTypography.caption(secondaryTextColor)
                     .copyWith(fontWeight: FontWeight.w600, letterSpacing: 0.8),
               ),
@@ -482,7 +632,9 @@ class _TodayEntryCard extends StatelessWidget {
             ),
           ] else ...[
             Text(
-              'Nothing written for this day.',
+              isToday
+                  ? 'Nothing written for today.'
+                  : 'Nothing written for this date.',
               style: HavenTypography.bodyMd(primaryTextColor)
                   .copyWith(fontWeight: FontWeight.w500),
             ),
@@ -495,7 +647,11 @@ class _TodayEntryCard extends StatelessWidget {
             ElevatedButton.icon(
               onPressed: onWrite,
               icon: const Icon(Icons.edit_note_rounded, size: 18.0),
-              label: const Text('Start writing'),
+              label: Text(
+                isToday
+                    ? 'Start writing'
+                    : 'Write for ${DateFormat('d MMM').format(selectedDate)}',
+              ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: primaryTextColor,
                 foregroundColor: canvasColor,
