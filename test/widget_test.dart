@@ -380,7 +380,7 @@ void main() {
   );
 
   testWidgets(
-    'Discover reflection library displays editorial categories and opens category screen',
+    'Discover screen displays daily reflection, introspective categories, templates, and opens category screen',
     (WidgetTester tester) async {
       final havenState = HavenState();
       await tester.runAsync(() async {
@@ -395,24 +395,47 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Discover'), findsOneWidget);
-      expect(find.text('Reflection Library'), findsOneWidget);
+      expect(find.text('DAILY REFLECTION'), findsOneWidget);
       expect(find.text('Get to know yourself'), findsOneWidget);
-      expect(find.text('Your Family & Home'), findsOneWidget);
-      expect(find.text('People in Your Life'), findsOneWidget);
+      expect(find.text('My Story'), findsOneWidget);
+      expect(find.text('My People'), findsOneWidget);
+      expect(find.text('My Interests'), findsOneWidget);
+      expect(find.text('My Future'), findsOneWidget);
 
-      // Tap 'Get to know yourself'
-      await tester.tap(find.text('Get to know yourself'));
+      // Scroll down to reveal Templates and Random prompt button
+      await tester.drag(
+        find.byKey(const PageStorageKey('discover_scroll_list')),
+        const Offset(0, -600),
+      );
       await tester.pumpAndSettle();
+
+      expect(find.text('Templates'), findsOneWidget);
+      expect(find.text('See all'), findsOneWidget);
+      expect(find.text('Ask me something else'), findsOneWidget);
+
+      // Scroll back up and tap 'My Story'
+      await tester.drag(
+        find.byKey(const PageStorageKey('discover_scroll_list')),
+        const Offset(0, 600),
+      );
+      await tester.pumpAndSettle();
+
+      // Tap 'My Story'
+      await tester.tap(find.text('My Story'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
 
       // Should open CategoryPromptsScreen
       expect(find.byTooltip('Back'), findsOneWidget);
-      expect(find.text('Get to know yourself'), findsWidgets);
+      expect(find.text('My Story'), findsWidgets);
 
       // Tap Back
       await tester.tap(find.byTooltip('Back'));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
 
-      expect(find.text('Reflection Library'), findsOneWidget);
+      expect(find.text('Discover'), findsOneWidget);
+      expect(find.text('DAILY REFLECTION'), findsOneWidget);
     },
   );
 }

@@ -3,112 +3,18 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/state/haven_state.dart';
+import '../../core/models/template_model.dart';
 import '../../core/theme/haven_colors.dart';
 import '../../core/theme/haven_typography.dart';
+import '../templates/templates_screen.dart';
+import '../people/people_screen.dart';
+import '../notes/note_editor_screen.dart';
 import 'question_answer_screen.dart';
 import 'previous_answers_screen.dart';
 import 'category_prompts_screen.dart';
 
-class _CategoryData {
-  final String title;
-  final String description;
-  final IconData icon;
-  final List<String> dbCategories;
-  final bool isPeopleShortcut;
-
-  const _CategoryData({
-    required this.title,
-    required this.description,
-    required this.icon,
-    required this.dbCategories,
-    this.isPeopleShortcut = false,
-  });
-}
-
 class DiscoverScreen extends StatelessWidget {
   const DiscoverScreen({super.key});
-
-  static const List<_CategoryData> _categories = [
-    _CategoryData(
-      title: 'Get to know yourself',
-      description: 'Explore your thoughts, personality, and the things that make you who you are.',
-      icon: Icons.person_outline_rounded,
-      dbCategories: ['About Me', 'My Story', 'General'],
-    ),
-    _CategoryData(
-      title: 'Your Family & Home',
-      description:
-          'Reflect on the people, places, and memories that shaped your life.',
-      icon: Icons.home_outlined,
-      dbCategories: ['Family'],
-    ),
-    _CategoryData(
-      title: 'People in Your Life',
-      description:
-          'Remember the relationships and connections that matter to you.',
-      icon: Icons.people_outline_rounded,
-      dbCategories: ['My People'],
-      isPeopleShortcut: true,
-    ),
-    _CategoryData(
-      title: 'Childhood & Memories',
-      description: 'Early impressions, childhood games, and unforgettable formative days.',
-      icon: Icons.history_edu_outlined,
-      dbCategories: ['Childhood & Memories'],
-    ),
-    _CategoryData(
-      title: 'School & College',
-      description: 'Moments of learning, independence, and finding your way.',
-      icon: Icons.school_outlined,
-      dbCategories: ['College & School'],
-    ),
-    _CategoryData(
-      title: 'Everyday Life',
-      description:
-          'The textures, small routines, and spaces of your ordinary days.',
-      icon: Icons.wb_sunny_outlined,
-      dbCategories: ['Everyday Life'],
-    ),
-    _CategoryData(
-      title: 'Feelings & Reflection',
-      description:
-          'Inner seasons, emotional honesty, and quiet mental clarity.',
-      icon: Icons.self_improvement_rounded,
-      dbCategories: ['Feelings & Reflection'],
-    ),
-    _CategoryData(
-      title: 'Things You Love',
-      description: 'Books, music, cherished objects, and sensory comforts that ground you.',
-      icon: Icons.favorite_border_rounded,
-      dbCategories: ['Things I Love', 'My Interests'],
-    ),
-    _CategoryData(
-      title: 'Dreams & Future',
-      description: 'Horizons, quiet hopes, and what you wish for tomorrow.',
-      icon: Icons.north_east_rounded,
-      dbCategories: ['Dreams & Future', 'My Future'],
-    ),
-    _CategoryData(
-      title: 'Gratitude & Small Joys',
-      description: 'A sanctuary for everyday kindness and gentle gratitude.',
-      icon: Icons.spa_outlined,
-      dbCategories: ['Gratitude & Small Joys'],
-    ),
-    _CategoryData(
-      title: 'Life Lessons',
-      description:
-          'Wisdom discovered gently through mistakes, growth, and time.',
-      icon: Icons.lightbulb_outline_rounded,
-      dbCategories: ['Life Lessons'],
-    ),
-    _CategoryData(
-      title: 'Letters You Never Sent',
-      description:
-          'Words left unsaid to loved ones, friends, or your younger self.',
-      icon: Icons.mail_outline_rounded,
-      dbCategories: ['Letters I Never Sent'],
-    ),
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -129,6 +35,7 @@ class DiscoverScreen extends StatelessWidget {
 
     final dailyQuestion = state.dailyQuestion;
     final dailyResponse = state.todayDailyResponse;
+    final previewTemplates = state.templates.take(5).toList();
 
     return RefreshIndicator(
       onRefresh: () => state.loadDiscover(),
@@ -143,16 +50,11 @@ class DiscoverScreen extends StatelessWidget {
           bottom: 120.0,
         ),
         children: [
-          // 1. Editorial Header
+          // 1. Heading
           Text('Discover', style: HavenTypography.headlineLg(primaryTextColor)),
-          const SizedBox(height: 4.0),
-          Text(
-            'A quiet reflection library of guided prompts, personal templates, and thought exercises.',
-            style: HavenTypography.bodySm(secondaryTextColor),
-          ),
-          const SizedBox(height: 20.0),
+          const SizedBox(height: 16.0),
 
-          // 2. DAILY REFLECTION
+          // 2. DAILY REFLECTION CARD
           Text(
             'DAILY REFLECTION',
             style: HavenTypography.caption(secondaryTextColor)
@@ -160,7 +62,7 @@ class DiscoverScreen extends StatelessWidget {
           ),
           const SizedBox(height: 8.0),
           Container(
-            padding: const EdgeInsets.all(18.0),
+            padding: const EdgeInsets.all(20.0),
             decoration: BoxDecoration(
               color: surfaceColor,
               borderRadius: BorderRadius.circular(16.0),
@@ -183,9 +85,9 @@ class DiscoverScreen extends StatelessWidget {
                         .copyWith(fontStyle: FontStyle.italic),
                   ),
                 ],
-                const SizedBox(height: 14.0),
+                const SizedBox(height: 16.0),
                 Divider(height: 1.0, color: borderColor),
-                const SizedBox(height: 10.0),
+                const SizedBox(height: 12.0),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -239,148 +141,140 @@ class DiscoverScreen extends StatelessWidget {
           ),
           const SizedBox(height: 28.0),
 
-          // 3. REFLECTION LIBRARY
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
+          // 3. GET TO KNOW YOURSELF (2x2 Grid)
+          Text(
+            'Get to know yourself',
+            style: HavenTypography.headlineSm(primaryTextColor)
+                .copyWith(fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 4.0),
+          Text(
+            'Keep the little details that make you, you.',
+            style: HavenTypography.bodySm(secondaryTextColor),
+          ),
+          const SizedBox(height: 12.0),
+          GridView.count(
+            crossAxisCount: 2,
+            crossAxisSpacing: 12.0,
+            mainAxisSpacing: 12.0,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            childAspectRatio: 1.25,
             children: [
-              Expanded(
-                child: Text(
-                  'Reflection Library',
-                  style: HavenTypography.headlineSm(primaryTextColor)
-                      .copyWith(fontWeight: FontWeight.w600),
-                ),
+              _SelfCard(
+                title: 'My Story',
+                description: 'Your life, memories, and journey.',
+                icon: Icons.menu_book_rounded,
+                onTap: () {
+                  Navigator.of(context).push(
+                    CupertinoPageRoute(
+                      builder: (_) => const CategoryPromptsScreen(
+                        category: 'My Story',
+                        description: 'Quiet prompts about formative chapters, memories, and turning points.',
+                      ),
+                    ),
+                  );
+                },
               ),
-              const SizedBox(width: 8.0),
-              Text(
-                '${_categories.length} categories',
-                style: HavenTypography.caption(secondaryTextColor),
+              _SelfCard(
+                title: 'My People',
+                description: 'The people who are part of your story.',
+                icon: Icons.group_rounded,
+                onTap: () {
+                  Navigator.of(context).push(
+                    CupertinoPageRoute(builder: (_) => const PeopleScreen()),
+                  );
+                },
+              ),
+              _SelfCard(
+                title: 'My Interests',
+                description: 'Things you love and want to explore.',
+                icon: Icons.favorite_border_rounded,
+                onTap: () {
+                  Navigator.of(context).push(
+                    CupertinoPageRoute(
+                      builder: (_) => const CategoryPromptsScreen(
+                        category: 'My Interests',
+                        description: 'Questions exploring your crafts, curiosities, books, and deep focus.',
+                      ),
+                    ),
+                  );
+                },
+              ),
+              _SelfCard(
+                title: 'My Future',
+                description: 'Your hopes, goals, and possibilities.',
+                icon: Icons.north_east_rounded,
+                onTap: () {
+                  Navigator.of(context).push(
+                    CupertinoPageRoute(
+                      builder: (_) => const CategoryPromptsScreen(
+                        category: 'My Future',
+                        description: 'Reflections on seasonal direction, horizons, boundaries, and growth.',
+                      ),
+                    ),
+                  );
+                },
               ),
             ],
           ),
+          const SizedBox(height: 28.0),
+
+          // 4. TEMPLATES SECTION (Horizontal Carousel)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Templates',
+                style: HavenTypography.headlineSm(primaryTextColor)
+                    .copyWith(fontWeight: FontWeight.w600),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    CupertinoPageRoute(builder: (_) => const TemplatesScreen()),
+                  );
+                },
+                child: Text(
+                  'See all',
+                  style: HavenTypography.labelSm(secondaryTextColor),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 2.0),
+          Text(
+            'Ready-made pages for the things you want to remember.',
+            style: HavenTypography.bodySm(secondaryTextColor),
+          ),
           const SizedBox(height: 12.0),
-
-          // 4. Refined Editorial List
-          Container(
-            decoration: BoxDecoration(
-              color: surfaceColor,
-              borderRadius: BorderRadius.circular(16.0),
-              border: Border.all(color: borderColor, width: 1.0),
-            ),
+          SizedBox(
+            height: 130.0,
             child: ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: _categories.length,
-              separatorBuilder: (context, index) =>
-                  Divider(height: 1.0, color: borderColor),
+              scrollDirection: Axis.horizontal,
+              itemCount: previewTemplates.length,
+              separatorBuilder: (context, index) => const SizedBox(width: 12.0),
               itemBuilder: (context, index) {
-                final cat = _categories[index];
-
-                // Calculate accurate count of templates in this category
-                final catLower = cat.dbCategories.map((c) => c.toLowerCase());
-                final templateCount = state.templates.where((t) {
-                  return catLower.contains(t.category.toLowerCase());
-                }).length;
-
-                return Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: () {
+                final tpl = previewTemplates[index];
+                return _TemplateCarouselCard(
+                  template: tpl,
+                  onTap: () async {
+                    final newNote = await state.useTemplate(tpl);
+                    if (context.mounted) {
                       Navigator.of(context).push(
                         CupertinoPageRoute(
-                          builder: (_) => CategoryPromptsScreen(
-                            category: cat.title,
-                            description: cat.description,
-                            dbCategories: cat.dbCategories,
-                            isPeopleShortcut: cat.isPeopleShortcut,
-                          ),
+                          builder: (_) => NoteEditorScreen(noteId: newNote.id),
                         ),
                       );
-                    },
-                    borderRadius: BorderRadius.vertical(
-                      top: index == 0
-                          ? const Radius.circular(16.0)
-                          : Radius.zero,
-                      bottom: index == _categories.length - 1
-                          ? const Radius.circular(16.0)
-                          : Radius.zero,
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16.0,
-                        vertical: 14.0,
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Container(
-                            width: 38.0,
-                            height: 38.0,
-                            decoration: BoxDecoration(
-                              color: isDark
-                                  ? const Color(0xFF1E1E1E)
-                                  : const Color(0xFFF2F2F0),
-                              borderRadius: BorderRadius.circular(10.0),
-                            ),
-                            child: Icon(
-                              cat.icon,
-                              size: 19.0,
-                              color: primaryTextColor,
-                            ),
-                          ),
-                          const SizedBox(width: 14.0),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        cat.title,
-                                        style: HavenTypography.bodyMd(
-                                          primaryTextColor,
-                                        ).copyWith(fontWeight: FontWeight.w600),
-                                      ),
-                                    ),
-                                    if (templateCount > 0)
-                                      Text(
-                                        '$templateCount templates',
-                                        style: HavenTypography.caption(
-                                          secondaryTextColor,
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                                const SizedBox(height: 2.0),
-                                Text(
-                                  cat.description,
-                                  style: HavenTypography.bodySm(
-                                    secondaryTextColor,
-                                  ),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 8.0),
-                          Icon(
-                            Icons.chevron_right_rounded,
-                            size: 18.0,
-                            color: secondaryTextColor,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                    }
+                  },
                 );
               },
             ),
           ),
           const SizedBox(height: 24.0),
 
-          // 5. Ask me something else
+          // 5. ASK ME SOMETHING ELSE
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
@@ -420,6 +314,168 @@ class DiscoverScreen extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _SelfCard extends StatelessWidget {
+  final String title;
+  final String description;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  const _SelfCard({
+    required this.title,
+    required this.description,
+    required this.icon,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryTextColor = isDark
+        ? HavenColors.darkTextPrimary
+        : HavenColors.lightTextPrimary;
+    final secondaryTextColor = isDark
+        ? HavenColors.darkTextSecondary
+        : HavenColors.lightTextSecondary;
+    final surfaceColor = isDark
+        ? HavenColors.darkSurface
+        : HavenColors.lightSurface;
+    final borderColor = isDark
+        ? HavenColors.darkBorder
+        : HavenColors.lightBorder;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16.0),
+        child: Container(
+          padding: const EdgeInsets.all(14.0),
+          decoration: BoxDecoration(
+            color: surfaceColor,
+            borderRadius: BorderRadius.circular(16.0),
+            border: Border.all(color: borderColor, width: 1.0),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: HavenTypography.bodyMd(primaryTextColor)
+                        .copyWith(fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 2.0),
+                  Text(
+                    description,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: HavenTypography.caption(secondaryTextColor)
+                        .copyWith(fontSize: 10.5, height: 1.3),
+                  ),
+                ],
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Icon(icon, size: 18.0, color: secondaryTextColor),
+                  Icon(
+                    Icons.arrow_forward_rounded,
+                    size: 16.0,
+                    color: secondaryTextColor,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _TemplateCarouselCard extends StatelessWidget {
+  final HavenTemplate template;
+  final VoidCallback onTap;
+
+  const _TemplateCarouselCard({required this.template, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryTextColor = isDark
+        ? HavenColors.darkTextPrimary
+        : HavenColors.lightTextPrimary;
+    final secondaryTextColor = isDark
+        ? HavenColors.darkTextSecondary
+        : HavenColors.lightTextSecondary;
+    final surfaceColor = isDark
+        ? HavenColors.darkSurface
+        : HavenColors.lightSurface;
+    final borderColor = isDark
+        ? HavenColors.darkBorder
+        : HavenColors.lightBorder;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16.0),
+        child: Container(
+          width: 140.0,
+          padding: const EdgeInsets.all(12.0),
+          decoration: BoxDecoration(
+            color: surfaceColor,
+            borderRadius: BorderRadius.circular(16.0),
+            border: Border.all(color: borderColor, width: 1.0),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    template.category.toUpperCase(),
+                    style: HavenTypography.caption(secondaryTextColor).copyWith(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 9.0,
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                  const SizedBox(height: 4.0),
+                  Text(
+                    template.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: HavenTypography.bodySm(primaryTextColor)
+                        .copyWith(fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 2.0),
+                  Text(
+                    template.description,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: HavenTypography.caption(secondaryTextColor)
+                        .copyWith(fontSize: 10.0, height: 1.25),
+                  ),
+                ],
+              ),
+              Align(
+                alignment: Alignment.bottomRight,
+                child: Icon(Icons.add, size: 16.0, color: secondaryTextColor),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
