@@ -46,7 +46,7 @@ class HavenHeader extends StatelessWidget implements PreferredSizeWidget {
           height: 56.0,
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
           decoration: BoxDecoration(
-            border: showBottomDivider
+            border: (!isHome && showBottomDivider)
                 ? Border(bottom: BorderSide(color: borderColor, width: 1.0))
                 : null,
           ),
@@ -61,10 +61,17 @@ class HavenHeader extends StatelessWidget implements PreferredSizeWidget {
                   child: Text(
                     'haven',
                     style: TextStyle(
-                      fontFamily: HavenTypography.fontFamily,
-                      fontSize: 26.0,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: -0.8,
+                      fontFamilyFallback: const [
+                        'New York',
+                        'Baskerville',
+                        'Georgia',
+                        'Didot',
+                        'serif',
+                      ],
+                      fontSize: 28.0,
+                      fontStyle: FontStyle.italic,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: -0.2,
                       color: primaryTextColor,
                     ),
                   ),
