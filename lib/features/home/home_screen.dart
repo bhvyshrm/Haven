@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 
@@ -9,6 +10,7 @@ import '../../core/theme/haven_colors.dart';
 import '../../core/theme/haven_typography.dart';
 import '../../core/widgets/haven_empty_state.dart';
 import '../../core/widgets/haven_header.dart';
+import '../journal/journal_editor_screen.dart';
 import '../notes/note_editor_screen.dart';
 import '../settings/settings_screen.dart';
 
@@ -49,101 +51,301 @@ class HomeScreen extends StatelessWidget {
           ),
         ),
         Expanded(
-          child: RefreshIndicator(
-            onRefresh: () => state.loadNotes(),
-            color: primaryTextColor,
-            backgroundColor: isDark
-                ? HavenColors.darkSurface
-                : HavenColors.lightCanvas,
-            child: ListView(
-              key: const PageStorageKey('home_scroll_list'),
-              padding: const EdgeInsets.only(
-                left: 20.0,
-                right: 20.0,
-                top: 16.0,
-                bottom: 120.0,
-              ),
-              children: [
-                // Section Heading
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.center,
+          child: Stack(
+            children: [
+              RefreshIndicator(
+                onRefresh: () => state.loadNotes(),
+                color: primaryTextColor,
+                backgroundColor: isDark
+                    ? HavenColors.darkSurface
+                    : HavenColors.lightCanvas,
+                child: ListView(
+                  key: const PageStorageKey('home_scroll_list'),
+                  padding: const EdgeInsets.only(
+                    left: 20.0,
+                    right: 20.0,
+                    top: 16.0,
+                    bottom: 120.0,
+                  ),
                   children: [
-                    Text(
-                      'Recently saved',
-                      style: HavenTypography.headlineSm(primaryTextColor)
-                          .copyWith(fontWeight: FontWeight.w600),
-                    ),
-                    if (state.notes.isNotEmpty)
-                      TextButton(
-                        onPressed: () =>
-                            state.setTabIndex(1), // Switch to Notes tab
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8.0,
-                            vertical: 4.0,
+                    // Section Heading
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Recently saved',
+                          style: HavenTypography.headlineSm(primaryTextColor)
+                              .copyWith(fontWeight: FontWeight.w600),
+                        ),
+                        if (state.notes.isNotEmpty)
+                          TextButton(
+                            onPressed: () =>
+                                state.setTabIndex(1), // Switch to Notes tab
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8.0,
+                                vertical: 4.0,
+                              ),
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            child: Text(
+                              'See all',
+                              style: HavenTypography.labelSm(
+                                secondaryTextColor,
+                              ),
+                            ),
                           ),
-                          minimumSize: Size.zero,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        ),
-                        child: Text(
-                          'See all',
-                          style: HavenTypography.labelSm(secondaryTextColor),
-                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16.0),
+
+                    // Content: Notes Grid or Empty State
+                    if (recentNotes.isEmpty)
+                      HavenEmptyState(
+                        icon: Icons.edit_note_rounded,
+                        title: 'No notes yet',
+                        description: 'Your saved notes will appear here.',
+                        actionLabel: '+ Create a note',
+                        onAction: () async {
+                          final note = await state.createNewNote();
+                          if (context.mounted) {
+                            Navigator.of(context).push(
+                              CupertinoPageRoute(
+                                builder: (_) =>
+                                    NoteEditorScreen(noteId: note.id),
+                              ),
+                            );
+                          }
+                        },
+                      )
+                    else
+                      GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              crossAxisSpacing: 14.0,
+                              mainAxisSpacing: 14.0,
+                              childAspectRatio: 0.96,
+                            ),
+                        itemCount: recentNotes.length,
+                        itemBuilder: (context, index) {
+                          final note = recentNotes[index];
+                          return _HomeNoteCard(
+                            note: note,
+                            onTap: () {
+                              Navigator.of(context).push(
+                                CupertinoPageRoute(
+                                  builder: (_) =>
+                                      NoteEditorScreen(noteId: note.id),
+                                ),
+                              );
+                            },
+                          );
+                        },
                       ),
                   ],
                 ),
-                const SizedBox(height: 16.0),
-
-                // Content: Notes Grid or Empty State
-                if (recentNotes.isEmpty)
-                  HavenEmptyState(
-                    icon: Icons.edit_note_rounded,
-                    title: 'No notes yet',
-                    description: 'Your saved notes will appear here.',
-                    actionLabel: '+ Create a note',
-                    onAction: () async {
-                      final note = await state.createNewNote();
-                      if (context.mounted) {
-                        Navigator.of(context).push(
-                          CupertinoPageRoute(
-                            builder: (_) => NoteEditorScreen(noteId: note.id),
-                          ),
-                        );
-                      }
-                    },
-                  )
-                else
-                  GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 14.0,
-                          mainAxisSpacing: 14.0,
-                          childAspectRatio: 0.96,
-                        ),
-                    itemCount: recentNotes.length,
-                    itemBuilder: (context, index) {
-                      final note = recentNotes[index];
-                      return _HomeNoteCard(
-                        note: note,
-                        onTap: () {
-                          Navigator.of(context).push(
-                            CupertinoPageRoute(
-                              builder: (_) => NoteEditorScreen(noteId: note.id),
+              ),
+              Positioned(
+                right: 20.0,
+                bottom: 84.0,
+                child: Semantics(
+                  button: true,
+                  label: 'Quick add',
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () => _showQuickAddSheet(context, state),
+                      borderRadius: BorderRadius.circular(26.0),
+                      child: Container(
+                        width: 50.0,
+                        height: 50.0,
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? Colors.white
+                              : const Color(0xFF171717),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(
+                                alpha: isDark ? 0.35 : 0.16,
+                              ),
+                              blurRadius: 12.0,
+                              offset: const Offset(0, 4),
                             ),
-                          );
-                        },
-                      );
-                    },
+                          ],
+                        ),
+                        child: Icon(
+                          Icons.add_rounded,
+                          size: 26.0,
+                          color: isDark
+                              ? const Color(0xFF171717)
+                              : Colors.white,
+                        ),
+                      ),
+                    ),
                   ),
-              ],
-            ),
+                ),
+              ),
+            ],
           ),
         ),
       ],
+    );
+  }
+
+  void _showQuickAddSheet(BuildContext context, HavenState state) {
+    HapticFeedback.lightImpact();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryTextColor = isDark
+        ? HavenColors.darkTextPrimary
+        : HavenColors.lightTextPrimary;
+    final secondaryTextColor = isDark
+        ? HavenColors.darkTextSecondary
+        : HavenColors.lightTextSecondary;
+    final surfaceColor = isDark
+        ? HavenColors.darkSurface
+        : HavenColors.lightSurface;
+    final borderColor = isDark
+        ? HavenColors.darkBorder
+        : HavenColors.lightBorder;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: surfaceColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(22.0)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 20.0,
+              vertical: 16.0,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Drag handle
+                Container(
+                  width: 38.0,
+                  height: 4.0,
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? const Color(0xFF333333)
+                        : const Color(0xFFD8D8D8),
+                    borderRadius: BorderRadius.circular(2.0),
+                  ),
+                ),
+                const SizedBox(height: 18.0),
+                // New Note
+                ListTile(
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12.0,
+                    vertical: 4.0,
+                  ),
+                  leading: Container(
+                    width: 40.0,
+                    height: 40.0,
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? const Color(0xFF222222)
+                          : const Color(0xFFF2F2F2),
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                    child: Icon(
+                      Icons.edit_note_rounded,
+                      color: primaryTextColor,
+                      size: 22.0,
+                    ),
+                  ),
+                  title: Text(
+                    'New Note',
+                    style: HavenTypography.bodyMd(primaryTextColor)
+                        .copyWith(fontWeight: FontWeight.w600),
+                  ),
+                  subtitle: Text(
+                    'Capture an idea, thought, or list',
+                    style: HavenTypography.caption(secondaryTextColor),
+                  ),
+                  trailing: Icon(
+                    Icons.chevron_right_rounded,
+                    color: secondaryTextColor,
+                    size: 20.0,
+                  ),
+                  onTap: () async {
+                    Navigator.pop(ctx);
+                    final note = await state.createNewNote();
+                    if (context.mounted) {
+                      Navigator.of(context).push(
+                        CupertinoPageRoute(
+                          builder: (_) => NoteEditorScreen(noteId: note.id),
+                        ),
+                      );
+                    }
+                  },
+                ),
+                Divider(height: 1.0, color: borderColor),
+                // New Journal Entry
+                ListTile(
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12.0,
+                    vertical: 4.0,
+                  ),
+                  leading: Container(
+                    width: 40.0,
+                    height: 40.0,
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? const Color(0xFF222222)
+                          : const Color(0xFFF2F2F2),
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                    child: Icon(
+                      Icons.menu_book_rounded,
+                      color: primaryTextColor,
+                      size: 20.0,
+                    ),
+                  ),
+                  title: Text(
+                    'New Journal Entry',
+                    style: HavenTypography.bodyMd(primaryTextColor)
+                        .copyWith(fontWeight: FontWeight.w600),
+                  ),
+                  subtitle: Text(
+                    'Reflect on today’s thoughts and moments',
+                    style: HavenTypography.caption(secondaryTextColor),
+                  ),
+                  trailing: Icon(
+                    Icons.chevron_right_rounded,
+                    color: secondaryTextColor,
+                    size: 20.0,
+                  ),
+                  onTap: () async {
+                    Navigator.pop(ctx);
+                    final entry = await state.getOrCreateEntryForDate(
+                      DateTime.now(),
+                    );
+                    if (context.mounted) {
+                      Navigator.of(context).push(
+                        CupertinoPageRoute(
+                          builder: (_) =>
+                              JournalEditorScreen(entryId: entry.id),
+                        ),
+                      );
+                    }
+                  },
+                ),
+                const SizedBox(height: 8.0),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
