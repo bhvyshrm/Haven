@@ -31,7 +31,6 @@ class CategoryPromptsScreen extends StatefulWidget {
 
 class _CategoryPromptsScreenState extends State<CategoryPromptsScreen> {
   List<Question> _questions = [];
-  bool _loading = true;
 
   @override
   void initState() {
@@ -61,7 +60,6 @@ class _CategoryPromptsScreenState extends State<CategoryPromptsScreen> {
     if (mounted) {
       setState(() {
         _questions = collectedQuestions;
-        _loading = false;
       });
     }
   }
@@ -142,19 +140,13 @@ class _CategoryPromptsScreenState extends State<CategoryPromptsScreen> {
               const SizedBox(height: 12.0),
 
               Expanded(
-                child: _loading
-                    ? Center(
-                        child: CircularProgressIndicator(
-                          color: primaryTextColor,
-                        ),
-                      )
-                    : ListView(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20.0,
-                          vertical: 12.0,
-                        ),
-                        children: [
-                          // People shortcut button if applicable
+                child: ListView(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20.0,
+                    vertical: 12.0,
+                  ),
+                  children: [
+                    // People shortcut button if applicable
                           if (widget.isPeopleShortcut) ...[
                             Material(
                               color: Colors.transparent,

@@ -318,4 +318,101 @@ void main() {
     // With keyboard open, HavenBottomNav content should be empty / hidden
     expect(find.bySemanticsLabel('Journal'), findsNothing);
   });
+
+  testWidgets(
+    'Home screen renders quick-add floating button and opens action sheet with New Note and New Journal Entry',
+    (WidgetTester tester) async {
+      final havenState = HavenState();
+      await tester.runAsync(() async {
+        await havenState.init();
+      });
+
+      await tester.pumpWidget(createHavenAppWidget(havenState));
+      await tester.pumpAndSettle();
+
+      final quickAddBtn = find.bySemanticsLabel('Quick add');
+      expect(quickAddBtn, findsOneWidget);
+
+      await tester.tap(quickAddBtn);
+      await tester.pumpAndSettle();
+
+      expect(find.text('New Note'), findsOneWidget);
+      expect(find.text('New Journal Entry'), findsOneWidget);
+
+      // Dismiss sheet
+      await tester.tapAt(const Offset(10, 10));
+      await tester.pumpAndSettle();
+    },
+  );
+
+  testWidgets(
+    'Journal screen renders compact calendar and switches dates correctly',
+    (WidgetTester tester) async {
+      final havenState = HavenState();
+      await tester.runAsync(() async {
+        await havenState.init();
+      });
+
+      await tester.pumpWidget(createHavenAppWidget(havenState));
+      await tester.pumpAndSettle();
+
+      // Go to Journal (index 2)
+      await tester.tap(find.bySemanticsLabel('Journal'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Journal'), findsOneWidget);
+      expect(find.text("TODAY'S ENTRY"), findsOneWidget);
+      expect(find.byTooltip('Next month'), findsOneWidget);
+      expect(find.byTooltip('Previous month'), findsOneWidget);
+
+      // Tap next month chevron
+      await tester.tap(find.byTooltip('Next month'));
+      await tester.pumpAndSettle();
+
+      // Should display Today jump button when viewing another month
+      expect(find.text('Today'), findsOneWidget);
+
+      // Tap Today button to return
+      await tester.tap(find.text('Today'));
+      await tester.pumpAndSettle();
+      expect(find.text("TODAY'S ENTRY"), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'Discover reflection library displays editorial categories and opens category screen',
+    (WidgetTester tester) async {
+      final havenState = HavenState();
+      await tester.runAsync(() async {
+        await havenState.init();
+      });
+
+      await tester.pumpWidget(createHavenAppWidget(havenState));
+      await tester.pumpAndSettle();
+
+      // Go to Discover (index 3)
+      await tester.tap(find.bySemanticsLabel('Discover'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Discover'), findsOneWidget);
+      expect(find.text('Reflection Library'), findsOneWidget);
+      expect(find.text('Get to know yourself'), findsOneWidget);
+      expect(find.text('Your Family & Home'), findsOneWidget);
+      expect(find.text('People in Your Life'), findsOneWidget);
+
+      // Tap 'Get to know yourself'
+      await tester.tap(find.text('Get to know yourself'));
+      await tester.pumpAndSettle();
+
+      // Should open CategoryPromptsScreen
+      expect(find.byTooltip('Back'), findsOneWidget);
+      expect(find.text('Get to know yourself'), findsWidgets);
+
+      // Tap Back
+      await tester.tap(find.byTooltip('Back'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Reflection Library'), findsOneWidget);
+    },
+  );
 }

@@ -9,6 +9,7 @@ import 'package:haven/core/models/note_model.dart';
 import 'package:haven/core/models/journal_entry_model.dart';
 import 'package:haven/core/models/person_model.dart';
 import 'package:haven/core/services/seed_service.dart';
+import 'package:haven/core/services/auth_lock_service.dart';
 
 void main() {
   const dbName = 'test_models.db';
@@ -174,6 +175,26 @@ void main() {
 
       final templates = await db.getAllTemplates();
       expect(templates.length, greaterThanOrEqualTo(10));
+    });
+  });
+
+  group('AuthLockService & Passcode Security Tests', () {
+    test('Passcode hashing with salt sets and verifies correctly', () async {
+      final auth = AuthLockService.instance;
+      expect(await auth.hasPasscode(), isFalse);
+
+      final success = await auth.setPasscode('1234');
+      expect(success, isTrue);
+      expect(await auth.hasPasscode(), isTrue);
+
+      final correct = await auth.verifyPasscode('1234');
+      expect(correct, isTrue);
+
+      final wrong = await auth.verifyPasscode('9999');
+      expect(wrong, isFalse);
+
+      await auth.removePasscode();
+      expect(await auth.hasPasscode(), isFalse);
     });
   });
 }
