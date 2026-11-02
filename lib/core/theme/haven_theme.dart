@@ -107,6 +107,28 @@ class HavenTheme {
           vertical: 14.0,
         ),
       ),
+      bottomSheetTheme: const BottomSheetThemeData(
+        backgroundColor: HavenColors.lightCanvas,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(22.0)),
+        ),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: HavenColors.lightCanvas,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18.0),
+        ),
+      ),
+      snackBarTheme: SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: const Color(0xFF1F1F1F),
+        contentTextStyle: const TextStyle(color: Colors.white, fontSize: 13.5),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.0),
+        ),
+      ),
     );
   }
 
@@ -195,6 +217,29 @@ class HavenTheme {
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16.0,
           vertical: 14.0,
+        ),
+      ),
+      bottomSheetTheme: const BottomSheetThemeData(
+        backgroundColor: HavenColors.darkSurface,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(22.0)),
+        ),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: HavenColors.darkSurface,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18.0),
+          side: const BorderSide(color: HavenColors.darkBorder, width: 1.0),
+        ),
+      ),
+      snackBarTheme: SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: const Color(0xFF262626),
+        contentTextStyle: const TextStyle(color: Colors.white, fontSize: 13.5),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.0),
         ),
       ),
     );
