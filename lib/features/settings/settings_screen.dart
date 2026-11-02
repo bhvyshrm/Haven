@@ -697,9 +697,9 @@ class _AppLockSettingsBlock extends StatelessWidget {
     return ListTile(
       title: Text(
         label,
-        style: HavenTypography.bodyMd(primaryTextColor).copyWith(
-          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-        ),
+        style: HavenTypography.bodyMd(
+          primaryTextColor,
+        ).copyWith(fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400),
       ),
       trailing: isSelected
           ? Icon(Icons.check_rounded, color: primaryTextColor, size: 20.0)
