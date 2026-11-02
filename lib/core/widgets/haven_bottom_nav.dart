@@ -85,9 +85,9 @@ class HavenBottomNav extends StatelessWidget {
                     ),
                     _NavItem(
                       icon: currentIndex == 1
-                          ? Icons.menu_book_rounded
-                          : Icons.menu_book_outlined,
-                      label: 'Journal',
+                          ? Icons.edit_note_rounded
+                          : Icons.edit_note_outlined,
+                      label: 'Notes',
                       isSelected: currentIndex == 1,
                       activeColor: activeColor,
                       inactiveColor: inactiveColor,
@@ -95,9 +95,9 @@ class HavenBottomNav extends StatelessWidget {
                     ),
                     _NavItem(
                       icon: currentIndex == 2
-                          ? Icons.edit_note_rounded
-                          : Icons.edit_note_outlined,
-                      label: 'Notes',
+                          ? Icons.menu_book_rounded
+                          : Icons.menu_book_outlined,
+                      label: 'Journal',
                       isSelected: currentIndex == 2,
                       activeColor: activeColor,
                       inactiveColor: inactiveColor,

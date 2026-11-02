@@ -85,22 +85,22 @@ void main() {
       // On Home: wordmark present
       expect(find.text('haven'), findsOneWidget);
 
-      // Switch to Journal: wordmark must NOT be present
-      await tester.tap(find.bySemanticsLabel('Journal'));
-      await tester.pumpAndSettle();
-      expect(find.text('haven'), findsNothing);
-      expect(find.text("TODAY'S ENTRY"), findsOneWidget);
-      expect(havenState.currentTabIndex, 1);
-
-      // Switch to Notes: wordmark must NOT be present
+      // Switch to Notes (index 1): wordmark must NOT be present
       await tester.tap(find.bySemanticsLabel('Notes'));
       await tester.pumpAndSettle();
       expect(find.text('haven'), findsNothing);
       expect(find.text('Notes'), findsWidgets);
       expect(find.text('Search your notes'), findsOneWidget);
+      expect(havenState.currentTabIndex, 1);
+
+      // Switch to Journal (index 2): wordmark must NOT be present
+      await tester.tap(find.bySemanticsLabel('Journal'));
+      await tester.pumpAndSettle();
+      expect(find.text('haven'), findsNothing);
+      expect(find.text("TODAY'S ENTRY"), findsOneWidget);
       expect(havenState.currentTabIndex, 2);
 
-      // Switch to Discover: wordmark must NOT be present
+      // Switch to Discover (index 3): wordmark must NOT be present
       await tester.tap(find.bySemanticsLabel('Discover'));
       await tester.pumpAndSettle();
       expect(find.text('haven'), findsNothing);
@@ -108,7 +108,7 @@ void main() {
       expect(find.text('Get to know yourself'), findsOneWidget);
       expect(havenState.currentTabIndex, 3);
 
-      // Return to Home: wordmark restored
+      // Return to Home (index 0): wordmark restored
       await tester.tap(find.bySemanticsLabel('Home'));
       await tester.pumpAndSettle();
       expect(find.text('haven'), findsOneWidget);
@@ -220,10 +220,10 @@ void main() {
       await tester.pumpWidget(createHavenAppWidget(havenState));
       await tester.pumpAndSettle();
 
-      // 1. Switch to Notes
+      // 1. Switch to Notes (index 1)
       await tester.tap(find.bySemanticsLabel('Notes'));
       await tester.pumpAndSettle();
-      expect(havenState.currentTabIndex, 2);
+      expect(havenState.currentTabIndex, 1);
 
       // 2. Enter search text into Notes search field
       final searchField = find.byType(TextField);
@@ -232,16 +232,16 @@ void main() {
       await tester.pumpAndSettle();
       expect(havenState.searchQuery, 'serenity');
 
-      // 3. Switch to Journal
+      // 3. Switch to Journal (index 2)
       await tester.tap(find.bySemanticsLabel('Journal'));
       await tester.pumpAndSettle();
-      expect(havenState.currentTabIndex, 1);
+      expect(havenState.currentTabIndex, 2);
       expect(find.text("TODAY'S ENTRY"), findsOneWidget);
 
       // 4. Switch back to Notes -> search query preserved!
       await tester.tap(find.bySemanticsLabel('Notes'));
       await tester.pumpAndSettle();
-      expect(havenState.currentTabIndex, 2);
+      expect(havenState.currentTabIndex, 1);
       expect(havenState.searchQuery, 'serenity');
       expect(find.text('serenity'), findsOneWidget);
 
@@ -273,16 +273,16 @@ void main() {
       // Start on Home
       expect(havenState.currentTabIndex, 0);
 
-      // Navigate Home (0) -> Journal (1) -> Notes (2)
-      await tester.tap(find.bySemanticsLabel('Journal'));
+      // Navigate Home (0) -> Notes (1) -> Journal (2)
+      await tester.tap(find.bySemanticsLabel('Notes'));
       await tester.pumpAndSettle();
       expect(havenState.currentTabIndex, 1);
 
-      await tester.tap(find.bySemanticsLabel('Notes'));
+      await tester.tap(find.bySemanticsLabel('Journal'));
       await tester.pumpAndSettle();
       expect(havenState.currentTabIndex, 2);
 
-      // Pop tab history
+      // Pop tab history back to Notes
       final didPop1 = havenState.popTab();
       expect(didPop1, isTrue);
       expect(havenState.currentTabIndex, 1);

@@ -109,8 +109,8 @@ class MainShell extends StatelessWidget {
                   currentIndex: state.currentTabIndex,
                   children: const [
                     HomeScreen(),
-                    JournalScreen(),
                     NotesScreen(),
+                    JournalScreen(),
                     DiscoverScreen(),
                   ],
                 ),

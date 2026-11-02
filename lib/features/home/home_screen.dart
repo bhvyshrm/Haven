@@ -77,7 +77,7 @@ class HomeScreen extends StatelessWidget {
                     if (state.notes.isNotEmpty)
                       TextButton(
                         onPressed: () =>
-                            state.setTabIndex(2), // Switch to Notes tab
+                            state.setTabIndex(1), // Switch to Notes tab
                         style: TextButton.styleFrom(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 8.0,
