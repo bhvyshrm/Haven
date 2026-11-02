@@ -1,19 +1,90 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../core/services/auth_lock_service.dart';
 import '../core/state/haven_state.dart';
 import '../core/theme/haven_colors.dart';
-import '../core/theme/haven_typography.dart';
 import '../core/widgets/haven_bottom_nav.dart';
+import '../core/widgets/haven_passcode_pad.dart';
 import '../core/widgets/haven_responsive_container.dart';
 import '../core/widgets/haven_tab_switcher.dart';
 import 'home/home_screen.dart';
-import 'journal/journal_screen.dart';
 import 'notes/notes_screen.dart';
+import 'journal/journal_screen.dart';
 import 'discover/discover_screen.dart';
 
-class MainShell extends StatelessWidget {
+class MainShell extends StatefulWidget {
   const MainShell({super.key});
+
+  @override
+  State<MainShell> createState() => _MainShellState();
+}
+
+class _MainShellState extends State<MainShell> with WidgetsBindingObserver {
+  String? _lockErrorMessage;
+  bool _attemptedAutoBiometrics = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkAutoBiometrics();
+    });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState lifecycleState) {
+    final state = context.read<HavenState>();
+    if (lifecycleState == AppLifecycleState.paused ||
+        lifecycleState == AppLifecycleState.inactive) {
+      state.handleAppPaused();
+      _attemptedAutoBiometrics = false;
+    } else if (lifecycleState == AppLifecycleState.resumed) {
+      state.handleAppResumed();
+      if (state.isLocked) {
+        _checkAutoBiometrics();
+      }
+    }
+  }
+
+  Future<void> _checkAutoBiometrics() async {
+    final state = context.read<HavenState>();
+    if (state.isLocked &&
+        state.settings.useBiometrics &&
+        !_attemptedAutoBiometrics) {
+      _attemptedAutoBiometrics = true;
+      final canBio = await AuthLockService.instance.isBiometricsSupported();
+      if (canBio) {
+        final success = await state.unlockWithBiometrics();
+        if (success && mounted) {
+          setState(() {
+            _lockErrorMessage = null;
+          });
+        }
+      }
+    }
+  }
+
+  void _onPasscodeEntered(String code) async {
+    final state = context.read<HavenState>();
+    final success = await state.unlockWithPasscode(code);
+    if (success && mounted) {
+      setState(() {
+        _lockErrorMessage = null;
+      });
+    } else if (mounted) {
+      setState(() {
+        _lockErrorMessage = 'Incorrect passcode. Please try again.';
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,9 +93,6 @@ class MainShell extends StatelessWidget {
     final primaryTextColor = isDark
         ? HavenColors.darkTextPrimary
         : HavenColors.lightTextPrimary;
-    final secondaryTextColor = isDark
-        ? HavenColors.darkTextSecondary
-        : HavenColors.lightTextSecondary;
     final canvasColor = isDark
         ? HavenColors.darkCanvas
         : HavenColors.lightCanvas;
@@ -34,48 +102,28 @@ class MainShell extends StatelessWidget {
     if (state.isLocked) {
       return Scaffold(
         backgroundColor: canvasColor,
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(32.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.lock_outline_rounded,
-                  size: 48.0,
-                  color: primaryTextColor,
-                ),
-                const SizedBox(height: 16.0),
-                Text(
-                  'Haven is Locked',
-                  style: HavenTypography.headlineSm(primaryTextColor)
-                      .copyWith(fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(height: 6.0),
-                Text(
-                  'Your private space is protected by device authentication.',
-                  textAlign: TextAlign.center,
-                  style: HavenTypography.bodySm(secondaryTextColor),
-                ),
-                const SizedBox(height: 24.0),
-                ElevatedButton.icon(
-                  onPressed: () => state.unlockApp(),
-                  icon: const Icon(Icons.fingerprint_rounded, size: 18.0),
-                  label: const Text('Unlock'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: primaryTextColor,
-                    foregroundColor: canvasColor,
-                    elevation: 0,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24.0,
-                      vertical: 12.0,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.0),
-                    ),
-                  ),
-                ),
-              ],
+        body: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 24.0,
+                vertical: 24.0,
+              ),
+              child: HavenPasscodePad(
+                title: 'Haven is Locked',
+                subtitle: 'Enter your passcode or authenticate to continue.',
+                errorMessage: _lockErrorMessage,
+                showBiometrics: state.settings.useBiometrics,
+                onBiometricsTap: () async {
+                  final ok = await state.unlockWithBiometrics();
+                  if (ok && mounted) {
+                    setState(() {
+                      _lockErrorMessage = null;
+                    });
+                  }
+                },
+                onPasscodeComplete: _onPasscodeEntered,
+              ),
             ),
           ),
         ),
