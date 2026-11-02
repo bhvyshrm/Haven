@@ -3,6 +3,10 @@ import 'package:flutter/material.dart';
 class HavenSettings {
   final ThemeMode themeMode;
   final bool isAppLockEnabled;
+  final bool useBiometrics;
+  final int
+  lockTimeoutSeconds; // 0 = Immediately, 60 = 1 minute, 300 = 5 minutes
+  final bool hasPasscode;
   final bool isDailyReminderEnabled;
   final String dailyReminderTime; // '20:00'
   final bool isWeeklyPlanReminderEnabled;
@@ -14,6 +18,9 @@ class HavenSettings {
   const HavenSettings({
     this.themeMode = ThemeMode.system,
     this.isAppLockEnabled = false,
+    this.useBiometrics = true,
+    this.lockTimeoutSeconds = 0,
+    this.hasPasscode = false,
     this.isDailyReminderEnabled = false,
     this.dailyReminderTime = '20:00',
     this.isWeeklyPlanReminderEnabled = false,
@@ -26,6 +33,9 @@ class HavenSettings {
   HavenSettings copyWith({
     ThemeMode? themeMode,
     bool? isAppLockEnabled,
+    bool? useBiometrics,
+    int? lockTimeoutSeconds,
+    bool? hasPasscode,
     bool? isDailyReminderEnabled,
     String? dailyReminderTime,
     bool? isWeeklyPlanReminderEnabled,
@@ -37,6 +47,9 @@ class HavenSettings {
     return HavenSettings(
       themeMode: themeMode ?? this.themeMode,
       isAppLockEnabled: isAppLockEnabled ?? this.isAppLockEnabled,
+      useBiometrics: useBiometrics ?? this.useBiometrics,
+      lockTimeoutSeconds: lockTimeoutSeconds ?? this.lockTimeoutSeconds,
+      hasPasscode: hasPasscode ?? this.hasPasscode,
       isDailyReminderEnabled:
           isDailyReminderEnabled ?? this.isDailyReminderEnabled,
       dailyReminderTime: dailyReminderTime ?? this.dailyReminderTime,
@@ -55,6 +68,9 @@ class HavenSettings {
     return {
       'theme_mode': themeMode.name,
       'is_app_lock_enabled': isAppLockEnabled ? 1 : 0,
+      'use_biometrics': useBiometrics ? 1 : 0,
+      'lock_timeout_seconds': lockTimeoutSeconds,
+      'has_passcode': hasPasscode ? 1 : 0,
       'is_daily_reminder_enabled': isDailyReminderEnabled ? 1 : 0,
       'daily_reminder_time': dailyReminderTime,
       'is_weekly_plan_reminder_enabled': isWeeklyPlanReminderEnabled ? 1 : 0,
@@ -78,6 +94,9 @@ class HavenSettings {
     return HavenSettings(
       themeMode: mode,
       isAppLockEnabled: (map['is_app_lock_enabled'] as int? ?? 0) == 1,
+      useBiometrics: (map['use_biometrics'] as int? ?? 1) == 1,
+      lockTimeoutSeconds: map['lock_timeout_seconds'] as int? ?? 0,
+      hasPasscode: (map['has_passcode'] as int? ?? 0) == 1,
       isDailyReminderEnabled:
           (map['is_daily_reminder_enabled'] as int? ?? 0) == 1,
       dailyReminderTime: (map['daily_reminder_time'] as String?) ?? '20:00',

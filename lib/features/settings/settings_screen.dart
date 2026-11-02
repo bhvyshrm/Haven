@@ -10,6 +10,7 @@ import '../../core/widgets/haven_responsive_container.dart';
 import '../../core/services/backup_service.dart';
 import '../../core/services/auth_lock_service.dart';
 import '../../core/services/notification_service.dart';
+import '../../core/widgets/haven_passcode_pad.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -179,57 +180,12 @@ class SettingsScreen extends StatelessWidget {
                       title: 'SECURITY & PRIVACY',
                       color: secondaryTextColor,
                     ),
-                    Material(
-                      color: surfaceColor,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16.0),
-                        side: BorderSide(color: borderColor, width: 1.0),
-                      ),
-                      clipBehavior: Clip.antiAlias,
-                      child: SwitchListTile(
-                        value: settings.isAppLockEnabled,
-                        onChanged: (val) async {
-                          if (val) {
-                            final canAuth = await AuthLockService.instance
-                                .isDeviceSupported();
-                            if (!canAuth) {
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'Device authentication is not available on this platform.',
-                                    ),
-                                  ),
-                                );
-                              }
-                              return;
-                            }
-                            final authed = await AuthLockService.instance
-                                .authenticate(
-                                  reason:
-                                      'Authenticate to enable Haven app lock',
-                                );
-                            if (authed) {
-                              await state.updateSettings(
-                                settings.copyWith(isAppLockEnabled: true),
-                              );
-                            }
-                          } else {
-                            await state.updateSettings(
-                              settings.copyWith(isAppLockEnabled: false),
-                            );
-                          }
-                        },
-                        title: Text(
-                          'App Lock',
-                          style: HavenTypography.bodyMd(primaryTextColor),
-                        ),
-                        subtitle: Text(
-                          'Require biometrics or device PIN to open Haven',
-                          style: HavenTypography.caption(secondaryTextColor),
-                        ),
-                        activeThumbColor: primaryTextColor,
-                      ),
+                    _AppLockSettingsBlock(
+                      settings: settings,
+                      surfaceColor: surfaceColor,
+                      borderColor: borderColor,
+                      primaryTextColor: primaryTextColor,
+                      secondaryTextColor: secondaryTextColor,
                     ),
                     const SizedBox(height: 24.0),
 
@@ -655,6 +611,319 @@ class _SectionHeader extends StatelessWidget {
         title,
         style: HavenTypography.caption(color)
             .copyWith(fontWeight: FontWeight.w600, letterSpacing: 0.8),
+      ),
+    );
+  }
+}
+
+class _AppLockSettingsBlock extends StatelessWidget {
+  final dynamic settings;
+  final Color surfaceColor;
+  final Color borderColor;
+  final Color primaryTextColor;
+  final Color secondaryTextColor;
+
+  const _AppLockSettingsBlock({
+    required this.settings,
+    required this.surfaceColor,
+    required this.borderColor,
+    required this.primaryTextColor,
+    required this.secondaryTextColor,
+  });
+
+  void _showPasscodeSetup(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).brightness == Brightness.dark
+          ? HavenColors.darkCanvas
+          : HavenColors.lightCanvas,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24.0)),
+      ),
+      builder: (ctx) => const _PasscodeSetupModal(),
+    );
+  }
+
+  void _showPasscodeDisable(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).brightness == Brightness.dark
+          ? HavenColors.darkCanvas
+          : HavenColors.lightCanvas,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24.0)),
+      ),
+      builder: (ctx) => const _PasscodeDisableModal(),
+    );
+  }
+
+  void _showTimeoutDialog(BuildContext context, HavenState state) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          backgroundColor: surfaceColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18.0),
+            side: BorderSide(color: borderColor, width: 1.0),
+          ),
+          title: Text(
+            'Auto-Lock Timeout',
+            style: HavenTypography.headlineSm(primaryTextColor)
+                .copyWith(fontWeight: FontWeight.w600),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildTimeoutTile(ctx, state, 0, 'Immediately'),
+              _buildTimeoutTile(ctx, state, 60, 'After 1 minute'),
+              _buildTimeoutTile(ctx, state, 300, 'After 5 minutes'),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildTimeoutTile(
+    BuildContext ctx,
+    HavenState state,
+    int seconds,
+    String label,
+  ) {
+    final isSelected = state.settings.lockTimeoutSeconds == seconds;
+    return ListTile(
+      title: Text(
+        label,
+        style: HavenTypography.bodyMd(primaryTextColor).copyWith(
+          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+        ),
+      ),
+      trailing: isSelected
+          ? Icon(Icons.check_rounded, color: primaryTextColor, size: 20.0)
+          : null,
+      onTap: () {
+        state.updateSettings(
+          state.settings.copyWith(lockTimeoutSeconds: seconds),
+        );
+        Navigator.pop(ctx);
+      },
+    );
+  }
+
+  String _formatTimeout(int seconds) {
+    if (seconds <= 0) return 'Immediately upon exit';
+    if (seconds == 60) return 'After 1 minute in background';
+    return 'After ${seconds ~/ 60} minutes in background';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final state = context.watch<HavenState>();
+
+    return Material(
+      color: surfaceColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16.0),
+        side: BorderSide(color: borderColor, width: 1.0),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        children: [
+          SwitchListTile(
+            value: settings.isAppLockEnabled,
+            onChanged: (val) {
+              if (val) {
+                _showPasscodeSetup(context);
+              } else {
+                _showPasscodeDisable(context);
+              }
+            },
+            title: Text(
+              'App Lock',
+              style: HavenTypography.bodyMd(primaryTextColor),
+            ),
+            subtitle: Text(
+              'Require authentication to open Haven',
+              style: HavenTypography.caption(secondaryTextColor),
+            ),
+            activeThumbColor: primaryTextColor,
+          ),
+          if (settings.isAppLockEnabled) ...[
+            Divider(height: 1.0, color: borderColor),
+            SwitchListTile(
+              value: settings.useBiometrics,
+              onChanged: (val) {
+                state.updateSettings(settings.copyWith(useBiometrics: val));
+              },
+              title: Text(
+                'Unlock with Biometrics',
+                style: HavenTypography.bodyMd(primaryTextColor),
+              ),
+              subtitle: Text(
+                'Use Face ID or fingerprint when available',
+                style: HavenTypography.caption(secondaryTextColor),
+              ),
+              activeThumbColor: primaryTextColor,
+            ),
+            Divider(height: 1.0, color: borderColor),
+            ListTile(
+              onTap: () => _showPasscodeSetup(context),
+              title: Text(
+                'Change Passcode',
+                style: HavenTypography.bodyMd(primaryTextColor),
+              ),
+              trailing: Icon(
+                Icons.chevron_right_rounded,
+                size: 20.0,
+                color: secondaryTextColor,
+              ),
+            ),
+            Divider(height: 1.0, color: borderColor),
+            ListTile(
+              onTap: () => _showTimeoutDialog(context, state),
+              title: Text(
+                'Auto-Lock Timeout',
+                style: HavenTypography.bodyMd(primaryTextColor),
+              ),
+              subtitle: Text(
+                _formatTimeout(settings.lockTimeoutSeconds),
+                style: HavenTypography.caption(secondaryTextColor),
+              ),
+              trailing: Icon(
+                Icons.chevron_right_rounded,
+                size: 20.0,
+                color: secondaryTextColor,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _PasscodeSetupModal extends StatefulWidget {
+  const _PasscodeSetupModal();
+
+  @override
+  State<_PasscodeSetupModal> createState() => _PasscodeSetupModalState();
+}
+
+class _PasscodeSetupModalState extends State<_PasscodeSetupModal> {
+  int _step = 1; // 1: set, 2: confirm
+  String _firstCode = '';
+  String? _errorMessage;
+
+  void _onCodeEntered(String code) async {
+    if (_step == 1) {
+      setState(() {
+        _firstCode = code;
+        _step = 2;
+        _errorMessage = null;
+      });
+    } else {
+      if (code == _firstCode) {
+        final state = context.read<HavenState>();
+        await state.enableAppLock(
+          passcode: code,
+          useBiometrics: state.settings.useBiometrics,
+          lockTimeoutSeconds: state.settings.lockTimeoutSeconds,
+        );
+        if (mounted) {
+          Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('App Lock enabled successfully.')),
+          );
+        }
+      } else {
+        setState(() {
+          _step = 1;
+          _firstCode = '';
+          _errorMessage = 'Passcodes did not match. Please try again.';
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 28.0),
+        child: HavenPasscodePad(
+          title: _step == 1 ? 'Set 4-Digit Passcode' : 'Confirm Passcode',
+          subtitle: _step == 1
+              ? 'Choose a passcode to protect your Haven journals and notes.'
+              : 'Re-enter your passcode to confirm.',
+          errorMessage: _errorMessage,
+          onPasscodeComplete: _onCodeEntered,
+          onCancel: () => Navigator.pop(context),
+        ),
+      ),
+    );
+  }
+}
+
+class _PasscodeDisableModal extends StatefulWidget {
+  const _PasscodeDisableModal();
+
+  @override
+  State<_PasscodeDisableModal> createState() => _PasscodeDisableModalState();
+}
+
+class _PasscodeDisableModalState extends State<_PasscodeDisableModal> {
+  String? _errorMessage;
+
+  void _onCodeEntered(String code) async {
+    final valid = await AuthLockService.instance.verifyPasscode(code);
+    if (valid) {
+      if (mounted) {
+        await context.read<HavenState>().disableAppLock();
+        if (mounted) {
+          Navigator.pop(context);
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('App Lock disabled.')));
+        }
+      }
+    } else {
+      setState(() {
+        _errorMessage = 'Incorrect passcode.';
+      });
+    }
+  }
+
+  void _onBiometrics() async {
+    final success = await AuthLockService.instance.authenticateBiometrics();
+    if (success && mounted) {
+      await context.read<HavenState>().disableAppLock();
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('App Lock disabled.')));
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final state = context.watch<HavenState>();
+
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 28.0),
+        child: HavenPasscodePad(
+          title: 'Enter Passcode to Disable',
+          subtitle: 'Verify your identity to turn off App Lock.',
+          errorMessage: _errorMessage,
+          showBiometrics: state.settings.useBiometrics,
+          onBiometricsTap: _onBiometrics,
+          onPasscodeComplete: _onCodeEntered,
+          onCancel: () => Navigator.pop(context),
+        ),
       ),
     );
   }

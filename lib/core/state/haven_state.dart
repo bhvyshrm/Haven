@@ -29,6 +29,7 @@ class HavenState extends ChangeNotifier {
   // App Lock
   bool _isLocked = false;
   bool get isLocked => _isLocked;
+  DateTime? _lastBackgroundedTime;
 
   // Settings
   HavenSettings _settings = const HavenSettings();
@@ -107,12 +108,83 @@ class HavenState extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> unlockApp() async {
-    final success = await AuthLockService.instance.authenticate();
+  Future<bool> unlockWithBiometrics() async {
+    final success = await AuthLockService.instance.authenticateBiometrics();
     if (success) {
       _isLocked = false;
       notifyListeners();
+      return true;
     }
+    return false;
+  }
+
+  Future<bool> unlockWithPasscode(String passcode) async {
+    final success = await AuthLockService.instance.verifyPasscode(passcode);
+    if (success) {
+      _isLocked = false;
+      notifyListeners();
+      return true;
+    }
+    return false;
+  }
+
+  Future<void> unlockApp() async {
+    if (_settings.useBiometrics) {
+      final success = await unlockWithBiometrics();
+      if (success) return;
+    }
+  }
+
+  void lockApp() {
+    if (_settings.isAppLockEnabled && !_isLocked) {
+      _isLocked = true;
+      notifyListeners();
+    }
+  }
+
+  void handleAppPaused() {
+    _lastBackgroundedTime = DateTime.now();
+  }
+
+  void handleAppResumed() {
+    if (!_settings.isAppLockEnabled || _isLocked) return;
+    if (_lastBackgroundedTime == null) {
+      lockApp();
+      return;
+    }
+
+    final elapsed = DateTime.now().difference(_lastBackgroundedTime!).inSeconds;
+    if (elapsed >= _settings.lockTimeoutSeconds) {
+      lockApp();
+    }
+  }
+
+  Future<bool> enableAppLock({
+    required String passcode,
+    bool useBiometrics = true,
+    int lockTimeoutSeconds = 0,
+  }) async {
+    final saved = await AuthLockService.instance.setPasscode(passcode);
+    if (saved) {
+      _settings = _settings.copyWith(
+        isAppLockEnabled: true,
+        hasPasscode: true,
+        useBiometrics: useBiometrics,
+        lockTimeoutSeconds: lockTimeoutSeconds,
+      );
+      await _db.saveSettings(_settings);
+      notifyListeners();
+      return true;
+    }
+    return false;
+  }
+
+  Future<void> disableAppLock() async {
+    await AuthLockService.instance.removePasscode();
+    _settings = _settings.copyWith(isAppLockEnabled: false, hasPasscode: false);
+    _isLocked = false;
+    await _db.saveSettings(_settings);
+    notifyListeners();
   }
 
   void setTabIndex(int index) {
